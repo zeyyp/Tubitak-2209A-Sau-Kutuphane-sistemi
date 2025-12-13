@@ -4,15 +4,15 @@
       <div class="col-md-8 col-lg-6">
         <div class="card reservation-card">
           <div class="card-body p-4">
-            <h4 class="card-title text-center mb-4">Make a New Reservation</h4>
+            <h4 class="card-title text-center mb-4"><i class="bi bi-calendar-check"></i> Yeni Rezervasyon</h4>
             <form (ngSubmit)="onSearch()" #filterForm="ngForm">
               <div class="row mb-3">
                 <div class="col-md-6">
-                  <label class="form-label text-muted small">Reservation Date</label>
+                  <label class="form-label text-muted small"><i class="bi bi-calendar3"></i> Rezervasyon Tarihi</label>
                   <input type="date" class="form-control" name="date" [(ngModel)]="filter.date" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label text-muted small">Kat</label>
+                  <label class="form-label text-muted small"><i class="bi bi-building"></i> Kat</label>
                   <select class="form-select" name="floorId" [(ngModel)]="filter.floorId" required>
                     <option [value]="1">1</option>
                     <option [value]="2">2</option>
@@ -22,16 +22,16 @@
               </div>
               <div class="row mb-4">
                 <div class="col-md-6">
-                  <label class="form-label text-muted small">Start Time</label>
+                  <label class="form-label text-muted small"><i class="bi bi-clock"></i> Başlangıç Saati</label>
                   <input type="time" class="form-control" name="startTime" [(ngModel)]="filter.startTime" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label text-muted small">End Time</label>
+                  <label class="form-label text-muted small"><i class="bi bi-clock-fill"></i> Bitiş Saati</label>
                   <input type="time" class="form-control" name="endTime" [(ngModel)]="filter.endTime" required>
                 </div>
               </div>
               <button type="submit" class="btn btn-success w-100 text-uppercase fw-bold" [disabled]="!filterForm.form.valid">
-                CHECK AVAILABILITY
+                <i class="bi bi-search"></i> MÜSAİTLİK KONTROL ET
               </button>
             </form>
           </div>
@@ -58,7 +58,7 @@
     </div>
 
     <div *ngIf="tables.length > 0" class="mt-5">
-      <h5 class="mb-3">Masalar</h5>
+      <h5 class="mb-3"><i class="bi bi-table"></i> Uygun Masalar</h5>
       <div class="d-flex flex-wrap gap-3">
         <div *ngFor="let table of tables"
              class="table-box"

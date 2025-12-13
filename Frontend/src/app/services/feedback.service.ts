@@ -18,6 +18,10 @@ export class FeedbackService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  getStudentFeedbacks(studentNumber: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?studentNumber=${studentNumber}`);
+  }
+
   getAnalysis(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/Analysis`);
   }

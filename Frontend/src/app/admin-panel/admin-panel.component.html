@@ -1,80 +1,195 @@
 <div class="admin-panel-container">
-  <h2>Yönetici Paneli</h2>
-  <div class="admin-section">
-    <h4>Tüm Rezervasyonlar</h4>
-    <div *ngIf="isLoadingReservations" class="admin-info">Rezervasyonlar yükleniyor...</div>
-    <div *ngIf="!isLoadingReservations && reservations.length === 0" class="admin-info">Kayıtlı rezervasyon bulunamadı.</div>
-    <table *ngIf="!isLoadingReservations && reservations.length > 0" class="admin-table">
-      <thead>
-        <tr>
-          <th>Öğrenci No</th>
-          <th>Tarih</th>
-          <th>Saat</th>
-          <th>Masa</th>
-          <th>Durum</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let res of reservations">
-          <td>{{ res.studentNumber || res.StudentNumber }}</td>
-          <td>{{ res.reservationDate || res.ReservationDate }}</td>
-          <td>{{ res.startTime || res.StartTime }} - {{ res.endTime || res.EndTime }}</td>
-          <td>{{ res.tableNumber || res.TableNumber }} (Kat: {{ res.floorId || res.FloorId }})</td>
-          <td>
-            <span *ngIf="res.isAttended || res.IsAttended" class="badge bg-success">Giriş Yapıldı</span>
-            <span *ngIf="!(res.isAttended || res.IsAttended)" class="badge bg-warning text-dark">Bekliyor</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="admin-header">
+    <div class="container-fluid">
+      <div class="row align-items-center">
+        <div class="col">
+          <h2><i class="bi bi-shield-lock-fill me-3"></i>Yönetici Paneli</h2>
+          <p class="text-muted mb-0">Sistem yönetim ve izleme paneli</p>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="admin-section">
-    <h4>Gelen Geri Bildirimler</h4>
-    <div *ngIf="isLoadingFeedbacks" class="admin-info">Geri bildirimler yükleniyor...</div>
-    <div *ngIf="!isLoadingFeedbacks && feedbacks.length === 0" class="admin-info">Geri bildirim bulunamadı.</div>
-    <table *ngIf="!isLoadingFeedbacks && feedbacks.length > 0" class="admin-table">
-      <thead>
-        <tr>
-          <th>Tarih</th>
-          <th>Öğrenci No</th>
-          <th>Mesaj</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let fb of feedbacks">
-          <td>{{ (fb.date || fb.Date) | date:'short' }}</td>
-          <td>{{ fb.studentNumber || fb.StudentNumber }}</td>
-          <td>{{ fb.message || fb.Message }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="admin-section">
-    <h4>Kullanıcı Cezaları</h4>
-    <div *ngIf="isLoadingPenalties" class="admin-info">Ceza kayıtları yükleniyor...</div>
-    <div *ngIf="!isLoadingPenalties && penaltiesError" class="admin-info text-danger">{{ penaltiesError }}</div>
-    <div *ngIf="!isLoadingPenalties && !penaltiesError && penalties.length === 0" class="admin-info">Ceza kaydı bulunmuyor.</div>
-    <table *ngIf="!isLoadingPenalties && penalties.length > 0" class="admin-table">
-      <thead>
-        <tr>
-          <th>Öğrenci No</th>
-          <th>Öğrenci Tipi</th>
-          <th>Ceza Puanı</th>
-          <th>Ban Bitiş Tarihi</th>
-          <th>Ceza Nedeni</th>
-          <th>Son No-Show İşleme</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let penalty of penalties">
-          <td>{{ penalty.studentNumber || penalty.StudentNumber }}</td>
-          <td>{{ penalty.studentType || penalty.StudentType }}</td>
-          <td>{{ penalty.penaltyPoints || penalty.PenaltyPoints }}</td>
-          <td>{{ (penalty.banUntil || penalty.BanUntil) || '-' }}</td>
-          <td>{{ (penalty.banReason || penalty.BanReason) || '-' }}</td>
-          <td>{{ (penalty.lastNoShowProcessedAt || penalty.LastNoShowProcessedAt) | date:'short' }}</td>
-        </tr>
-      </tbody>
-    </table>
+
+  <div class="container-fluid mt-4">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-md-4">
+        <div class="stat-card stat-primary">
+          <i class="bi bi-calendar-check"></i>
+          <div>
+            <h3>{{ reservations.length }}</h3>
+            <p>Toplam Rezervasyon</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card stat-info">
+          <i class="bi bi-chat-dots"></i>
+          <div>
+            <h3>{{ feedbacks.length }}</h3>
+            <p>Geri Bildirim</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card stat-warning">
+          <i class="bi bi-exclamation-triangle"></i>
+          <div>
+            <h3>{{ penalties.length }}</h3>
+            <p>Ceza Kaydı</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reservations Section -->
+    <div class="admin-section">
+      <div class="section-header">
+        <h4><i class="bi bi-calendar-range me-2"></i>Tüm Rezervasyonlar</h4>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div *ngIf="isLoadingReservations" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-2 text-muted">Rezervasyonlar yükleniyor...</p>
+          </div>
+          <div *ngIf="!isLoadingReservations && reservations.length === 0" class="text-center py-4">
+            <i class="bi bi-inbox display-4 text-muted"></i>
+            <p class="text-muted mt-3">Kayıtlı rezervasyon bulunamadı.</p>
+          </div>
+          <div *ngIf="!isLoadingReservations && reservations.length > 0" class="table-responsive">
+            <table class="admin-table table table-hover">
+              <thead>
+                <tr>
+                  <th><i class="bi bi-person me-1"></i>Öğrenci No</th>
+                  <th><i class="bi bi-calendar3 me-1"></i>Tarih</th>
+                  <th><i class="bi bi-clock me-1"></i>Saat</th>
+                  <th><i class="bi bi-table me-1"></i>Masa</th>
+                  <th><i class="bi bi-check-circle me-1"></i>Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let res of reservations">
+                  <td><span class="badge bg-secondary">{{ res.studentNumber || res.StudentNumber }}</span></td>
+                  <td>{{ res.reservationDate || res.ReservationDate }}</td>
+                  <td>{{ res.startTime || res.StartTime }} - {{ res.endTime || res.EndTime }}</td>
+                  <td><span class="badge bg-primary">{{ res.tableNumber || res.TableNumber }}</span> <small class="text-muted">(Kat: {{ res.floorId || res.FloorId }})</small></td>
+                  <td>
+                    <span *ngIf="res.isAttended || res.IsAttended" class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Giriş Yapıldı</span>
+                    <span *ngIf="!(res.isAttended || res.IsAttended)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Feedbacks Section -->
+    <div class="admin-section">
+      <div class="section-header">
+        <h4><i class="bi bi-chat-left-text me-2"></i>Gelen Geri Bildirimler</h4>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div *ngIf="isLoadingFeedbacks" class="text-center py-4">
+            <div class="spinner-border text-info" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-2 text-muted">Geri bildirimler yükleniyor...</p>
+          </div>
+          <div *ngIf="!isLoadingFeedbacks && feedbacks.length === 0" class="text-center py-4">
+            <i class="bi bi-chat-square-dots display-4 text-muted"></i>
+            <p class="text-muted mt-3">Geri bildirim bulunamadı.</p>
+          </div>
+          <div *ngIf="!isLoadingFeedbacks && feedbacks.length > 0" class="table-responsive">
+            <table class="admin-table table table-hover">
+              <thead>
+                <tr>
+                  <th><i class="bi bi-person me-1"></i>Öğrenci No</th>
+                  <th><i class="bi bi-star me-1"></i>Puan</th>
+                  <th><i class="bi bi-chat-quote me-1"></i>Yorum</th>
+                  <th><i class="bi bi-calendar3 me-1"></i>Tarih</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let feedback of feedbacks">
+                  <td><span class="badge bg-secondary">{{ feedback.studentNumber || feedback.StudentNumber }}</span></td>
+                  <td>
+                    <span class="text-warning">
+                      <i *ngFor="let star of [1,2,3,4,5]" class="bi" [ngClass]="star <= (feedback.rating || feedback.Rating) ? 'bi-star-fill' : 'bi-star'"></i>
+                    </span>
+                  </td>
+                  <td>{{ feedback.comment || feedback.Comment }}</td>
+                  <td>{{ feedback.createdAt || feedback.CreatedAt | date:'short' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Penalties Section -->
+    <div class="admin-section">
+      <div class="section-header">
+        <h4><i class="bi bi-exclamation-octagon me-2"></i>Kullanıcı Cezaları</h4>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div *ngIf="isLoadingPenalties" class="text-center py-4">
+            <div class="spinner-border text-warning" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-2 text-muted">Ceza kayıtları yükleniyor...</p>
+          </div>
+          <div *ngIf="!isLoadingPenalties && penaltiesError" class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ penaltiesError }}
+          </div>
+          <div *ngIf="!isLoadingPenalties && !penaltiesError && penalties.length === 0" class="text-center py-4">
+            <i class="bi bi-check-circle display-4 text-success"></i>
+            <p class="text-muted mt-3">Ceza kaydı bulunmuyor.</p>
+          </div>
+          <div *ngIf="!isLoadingPenalties && penalties.length > 0" class="table-responsive">
+            <table class="admin-table table table-hover">
+              <thead>
+                <tr>
+                  <th><i class="bi bi-person me-1"></i>Öğrenci No</th>
+                  <th><i class="bi bi-mortarboard me-1"></i>Öğrenci Tipi</th>
+                  <th><i class="bi bi-exclamation-diamond me-1"></i>Ceza Puanı</th>
+                  <th><i class="bi bi-calendar-x me-1"></i>Ban Bitiş Tarihi</th>
+                  <th><i class="bi bi-info-circle me-1"></i>Ceza Nedeni</th>
+                  <th><i class="bi bi-clock-history me-1"></i>Son İşlem</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let penalty of penalties" [ngClass]="{'table-danger': penalty.banUntil || penalty.BanUntil}">
+                  <td><span class="badge bg-secondary">{{ penalty.studentNumber || penalty.StudentNumber }}</span></td>
+                  <td>{{ penalty.studentType || penalty.StudentType }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="(penalty.penaltyPoints || penalty.PenaltyPoints) > 0 ? 'bg-danger' : 'bg-success'">
+                      {{ penalty.penaltyPoints || penalty.PenaltyPoints }}
+                    </span>
+                  </td>
+                  <td>
+                    <span *ngIf="penalty.banUntil || penalty.BanUntil" class="text-danger fw-bold">
+                      <i class="bi bi-ban me-1"></i>{{ (penalty.banUntil || penalty.BanUntil) }}
+                    </span>
+                    <span *ngIf="!(penalty.banUntil || penalty.BanUntil)" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <span *ngIf="penalty.banReason || penalty.BanReason" class="text-danger">{{ (penalty.banReason || penalty.BanReason) }}</span>
+                    <span *ngIf="!(penalty.banReason || penalty.BanReason)" class="text-muted">-</span>
+                  </td>
+                  <td>{{ (penalty.lastNoShowProcessedAt || penalty.LastNoShowProcessedAt) | date:'short' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

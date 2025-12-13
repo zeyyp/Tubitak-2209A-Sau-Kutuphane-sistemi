@@ -1,0 +1,116 @@
+<div class="container mt-5">
+  <div class="profile-header text-center mb-4">
+    <div class="profile-avatar">
+      <i class="bi bi-person-circle display-1 text-primary"></i>
+    </div>
+    <h2 class="mt-3">Profilim</h2>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-4">
+      <div class="card info-card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-person-badge text-primary me-2"></i>Öğrenci Bilgileri</h5>
+          <hr>
+          <div class="info-item">
+            <label><i class="bi bi-hash"></i> Öğrenci Numarası:</label>
+            <span class="fw-bold">{{ studentNumber }}</span>
+          </div>
+          <div class="info-item" *ngIf="academicLevel">
+            <label><i class="bi bi-mortarboard"></i> Akademik Seviye:</label>
+            <span class="badge bg-info">{{ academicLevel }}</span>
+          </div>
+          <div *ngIf="isLoadingProfile" class="alert alert-info mt-3">
+            <i class="bi bi-hourglass-split me-2"></i>Ceza durumu yükleniyor...
+          </div>
+          <div *ngIf="!isLoadingProfile && profileError" class="alert alert-warning mt-3">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ profileError }}
+          </div>
+          <div *ngIf="!isLoadingProfile && penaltyInfo" class="penalty-card mt-3" [ngClass]="penaltyInfo.banUntil ? 'penalty-banned' : 'penalty-ok'">
+            <h6><i class="bi bi-shield-check me-2"></i>Durum Bilgisi</h6>
+            <div class="info-item"><label>Sistem Kaydı:</label><span>{{ penaltyInfo.studentType }}</span></div>
+            <div class="info-item"><label>Ceza Puanı:</label>
+              <span class="badge" [ngClass]="penaltyInfo.penaltyPoints > 0 ? 'bg-warning' : 'bg-success'">{{ penaltyInfo.penaltyPoints }}</span>
+            </div>
+            <div class="info-item" *ngIf="penaltyInfo.lastNoShowProcessedAt"><label>Son İşlem:</label><span>{{ penaltyInfo.lastNoShowProcessedAt | date:'short' }}</span></div>
+            <div class="info-item" *ngIf="penaltyInfo.banUntil"><label>Ban Bitiş:</label><span class="text-danger fw-bold">{{ penaltyInfo.banUntil }}</span></div>
+            <div class="mt-2" *ngIf="penaltyInfo.banReason">
+              <small class="text-muted">Ceza Nedeni:</small><br>
+              <span class="fw-bold">{{ penaltyInfo.banReason }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <div class="card reservations-card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-calendar-check text-success me-2"></i>Rezervasyonlarım</h5>
+          <hr>
+          <div *ngIf="isLoadingReservations" class="alert alert-info">
+            <i class="bi bi-hourglass-split me-2"></i>Rezervasyonlar yükleniyor...
+          </div>
+          <div *ngIf="!isLoadingReservations && reservations.length === 0" class="text-center py-4">
+            <i class="bi bi-inbox display-4 text-muted"></i>
+            <p class="text-muted mt-3">Henüz bir rezervasyonunuz bulunmamaktadır.</p>
+          </div>
+          <div *ngIf="!isLoadingReservations && reservations.length > 0" class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th><i class="bi bi-calendar3 me-1"></i>Tarih</th>
+                  <th><i class="bi bi-clock me-1"></i>Saat</th>
+                  <th><i class="bi bi-table me-1"></i>Masa</th>
+                  <th><i class="bi bi-check-circle me-1"></i>Durum</th>
+                  <th>İşlem</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let res of reservations">
+                  <td>{{ res.reservationDate || res.ReservationDate }}</td>
+                  <td>{{ res.startTime || res.StartTime }} - {{ res.endTime || res.EndTime }}</td>
+                  <td><span class="badge bg-primary">{{ res.tableNumber || res.TableNumber }}</span> <small class="text-muted">Kat: {{ res.floorId || res.FloorId }}</small></td>
+                  <td>
+                    <span *ngIf="res.isAttended || res.IsAttended" class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Giriş Yapıldı</span>
+                    <span *ngIf="!(res.isAttended || res.IsAttended)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
+                  </td>
+                  <td>
+                    <button *ngIf="!(res.isAttended || res.IsAttended)" class="btn btn-danger btn-sm" (click)="cancelReservation((res.id || res.Id))">
+                      <i class="bi bi-x-circle me-1"></i>İptal Et
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card feedbacks-card shadow-sm border-0">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-chat-left-text text-info me-2"></i>Geri Bildirimlerim</h5>
+          <hr>
+          <div *ngIf="isLoadingFeedbacks" class="alert alert-info">
+            <i class="bi bi-hourglass-split me-2"></i>Geri bildirimler yükleniyor...
+          </div>
+          <div *ngIf="!isLoadingFeedbacks && feedbacks.length === 0" class="text-center py-4">
+            <i class="bi bi-chat-square-dots display-4 text-muted"></i>
+            <p class="text-muted mt-3">Henüz bir geri bildiriminiz yok.</p>
+          </div>
+          <div *ngIf="!isLoadingFeedbacks && feedbacks.length > 0" class="feedback-list">
+            <div *ngFor="let fb of feedbacks" class="feedback-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <i class="bi bi-chat-left-quote text-info me-2"></i>
+                  <span>{{ fb.message || fb.Message }}</span>
+                </div>
+                <small class="text-muted">{{ fb.date || fb.Date | date:'short' }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

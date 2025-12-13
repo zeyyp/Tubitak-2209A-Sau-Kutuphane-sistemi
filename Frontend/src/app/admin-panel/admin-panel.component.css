@@ -1,46 +1,107 @@
 .admin-panel-container {
-  max-width: 900px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 32px 24px;
-}
-.admin-section {
-  margin-bottom: 32px;
-}
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 12px;
-}
-.admin-table th, .admin-table td {
-  border: 1px solid #e0e0e0;
-  padding: 8px 12px;
-  text-align: left;
-}
-.admin-table th {
-  background: #f5f5f5;
-}
-.badge {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.95em;
-}
-.bg-success {
-  background: #4caf50;
-  color: #fff;
-}
-.bg-warning {
-  background: #ffc107;
-  color: #333;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding-bottom: 40px;
 }
 
-.admin-info {
-  margin-top: 12px;
-  padding: 10px 14px;
-  border: 1px dashed #bdbdbd;
-  border-radius: 4px;
-  background: #fafafa;
-  color: #424242;
+.admin-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px 0;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.admin-header h2 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card i {
+  font-size: 3rem;
+}
+
+.stat-primary i { color: #667eea; }
+.stat-info i { color: #17a2b8; }
+.stat-warning i { color: #ffc107; }
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.stat-card p {
+  margin: 0;
+  color: #6c757d;
+}
+
+.admin-section {
+  margin-bottom: 30px;
+}
+
+.section-header {
+  margin-bottom: 20px;
+}
+
+.section-header h4 {
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+.card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+.admin-table {
+  margin: 0;
+}
+
+.admin-table thead {
+  background: #f8f9fa;
+}
+
+.admin-table th {
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  padding: 15px;
+}
+
+.admin-table td {
+  padding: 12px 15px;
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.feedback-message {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
 }

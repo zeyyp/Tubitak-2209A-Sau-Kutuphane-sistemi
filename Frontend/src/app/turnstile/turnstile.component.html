@@ -1,20 +1,21 @@
 <section id="turnstile" class="turnstile section">
   <div class="container" data-aos="fade-up">
     <div class="section-title">
-      <h2>Turnike Girişi</h2>
-      <p>Kütüphaneye giriş yapmak için öğrenci numaranızı okutunuz (giriniz).</p>
+      <h2><i class="bi bi-door-open"></i> Turnike Girişi</h2>
+      <p>Kütüphaneye giriş yapmak için öğrenci numaranızı giriniz.</p>
     </div>
 
     <div class="row justify-content-center">
       <div class="col-lg-6">
-        <div class="card shadow-sm">
-          <div class="card-body text-center">
-            <div class="mb-3">
-              <label for="studentNumber" class="form-label">Öğrenci Numarası</label>
-              <input type="text" class="form-control form-control-lg text-center" id="studentNumber" [(ngModel)]="studentNumber" (keyup.enter)="onEnter()" placeholder="Örn: 12345" autocomplete="off">
+        <div class="card shadow-lg border-0">
+          <div class="card-body text-center p-5">
+            <div class="mb-4">
+              <i class="bi bi-person-badge display-1 text-primary mb-3"></i>
+              <label for="studentNumber" class="form-label fs-5 fw-bold">Öğrenci Numarası</label>
+              <input type="text" class="form-control form-control-lg text-center fs-4 mt-2" id="studentNumber" [(ngModel)]="studentNumber" (keyup.enter)="onEnter()" placeholder="Örn: 123456" autocomplete="off" autofocus>
             </div>
-            <button class="btn btn-primary btn-lg w-100" (click)="onEnter()" [disabled]="isLoading">
-              Giriş Yap
+            <button class="btn btn-primary btn-lg w-100 fs-5" (click)="onEnter()" [disabled]="isLoading">
+              <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
             </button>
 
             <div *ngIf="message" class="mt-4 alert" [ngClass]="{'alert-success': isSuccess, 'alert-danger': !isSuccess}">

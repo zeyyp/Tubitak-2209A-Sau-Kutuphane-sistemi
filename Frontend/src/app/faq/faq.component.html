@@ -1,0 +1,83 @@
+<section id="faq" class="faq section">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>SSS - Sıkça Sorulan Sorular</h2>
+    <p>Kütüphane hizmetleri hakkında sıkça sorulan sorular ve cevapları</p>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10" data-aos="fade-up" data-aos-delay="100">
+
+        <!-- Her kategori için ayrı bölüm -->
+        <div *ngFor="let category of categories; let i = index" class="category-section mb-5">
+          <h3 class="category-title">
+            <i class="bi bi-bookmark-fill"></i> {{ category }}
+          </h3>
+
+          <div class="faq-container">
+            <div *ngFor="let faq of getFaqsByCategory(category)"
+                 class="faq-item"
+                 [class.faq-active]="faq.isOpen"
+                 (click)="toggleFaq(faq)">
+              <h3>{{ faq.question }}</h3>
+              <div class="faq-content">
+                <p>{{ faq.answer }}</p>
+              </div>
+              <i class="faq-toggle bi bi-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Ek Bilgiler -->
+    <div class="row mt-5">
+      <div class="col-lg-12">
+        <div class="alert alert-info">
+          <h5><i class="bi bi-info-circle"></i> Daha Fazla Bilgi</h5>
+          <p class="mb-2">
+            Sorularınıza cevap bulamadıysanız veya daha detaylı bilgi almak istiyorsanız:
+          </p>
+          <ul class="mb-0">
+            <li><strong>E-posta:</strong> kutuphane&#64;sakarya.edu.tr</li>
+            <li><strong>Telefon:</strong> +90 264 295 53 58</li>
+            <li><a routerLink="/contact" class="alert-link">İletişim sayfamızı</a> ziyaret edebilirsiniz</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yararlı Linkler -->
+    <div class="row mt-4">
+      <div class="col-lg-12">
+        <div class="useful-links">
+          <h4>Yararlı Bağlantılar</h4>
+          <div class="row">
+            <div class="col-md-4">
+              <ul>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> Katalog Tarama</a></li>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> Veri Tabanları</a></li>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> E-Kaynaklar</a></li>
+              </ul>
+            </div>
+            <div class="col-md-4">
+              <ul>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> Yeni Gelen Yayınlar</a></li>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> Kampüs Dışı Erişim</a></li>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> Eğitim Videoları</a></li>
+              </ul>
+            </div>
+            <div class="col-md-4">
+              <ul>
+                <li><a routerLink="/about"><i class="bi bi-arrow-right-circle"></i> Hakkımızda</a></li>
+                <li><a routerLink="/contact"><i class="bi bi-arrow-right-circle"></i> İletişim</a></li>
+                <li><a href="#"><i class="bi bi-arrow-right-circle"></i> Site Haritası</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

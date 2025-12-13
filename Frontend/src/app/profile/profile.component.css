@@ -1,0 +1,50 @@
+.profile-avatar {
+  margin-top: -50px;
+}
+
+.info-card, .reservations-card, .feedbacks-card {
+  border-radius: 15px;
+}
+
+.info-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item label {
+  color: #6c757d;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.info-item span {
+  font-size: 1rem;
+}
+
+.penalty-card {
+  padding: 15px;
+  border-radius: 10px;
+  background: #f8f9fa;
+}
+
+.penalty-ok {
+  border-left: 4px solid #28a745;
+}
+
+.penalty-banned {
+  border-left: 4px solid #dc3545;
+  background: #fff5f5;
+}
+
+.feedback-item {
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #0dcaf0;
+}

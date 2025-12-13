@@ -48,6 +48,14 @@ export class ReservationService {
     return this.http.delete(`${this.apiUrl}/Cancel/${id}`);
   }
 
+  getStudentReservations(studentNumber: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/MyReservations?studentNumber=${studentNumber}`);
+  }
+
+  getStudentPenalty(studentNumber: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/Profile/${studentNumber}`);
+  }
+
   enterTurnstile(studentNumber: string): Observable<any> {
     // Turnstile Service is on port 5003, but via Gateway it is /api/Turnstile
     // The Gateway is on port 5010.

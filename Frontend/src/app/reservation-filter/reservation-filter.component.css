@@ -6,33 +6,64 @@
 
 .reservation-card {
   border: none;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  border-radius: 15px;
   background: white;
+  transition: transform 0.3s ease;
+}
+
+.reservation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.reservation-card .card-title {
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
 
 .form-control, .form-select {
-  border: 1px solid #dee2e6;
-  padding: 10px;
-  border-radius: 5px;
+  border: 2px solid #e9ecef;
+  padding: 12px;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #198754;
+  box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
 }
 
 .form-label {
-  font-weight: 500;
-  margin-bottom: 5px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #495057;
+}
+
+.form-label i {
+  margin-right: 5px;
+  color: #198754;
 }
 
 .btn-success {
-  background-color: #198754;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
   border: none;
-  padding: 12px;
-  border-radius: 5px;
-  letter-spacing: 1px;
-  transition: background-color 0.3s;
+  padding: 14px;
+  border-radius: 8px;
+  letter-spacing: 1.5px;
+  transition: all 0.3s ease;
+  font-weight: 700;
 }
 
-.btn-success:hover {
-  background-color: #157347;
+.btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(32, 201, 151, 0.4);
+}
+
+.btn-success i {
+  margin-right: 8px;
 }
 
 .reservation-notice {
@@ -44,33 +75,55 @@
 }
 
 .table-box {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.table-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s;
+}
+
+.table-box:hover::before {
+  left: 100%;
 }
 
 .table-box:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 
 .table-box.available {
-  background-color: #28a745; /* Green for available */
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
 }
 
 .table-box.occupied {
-  background-color: #6c757d; /* Gray for occupied */
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
   cursor: not-allowed;
-  opacity: 0.8;
+  opacity: 0.7;
+}
+
+.table-box.occupied:hover {
+  transform: none;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
 /* Modal Styles */
@@ -84,7 +137,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999; /* Increased z-index */
+  z-index: 9999;
 }
 
 .modal-card {
@@ -94,22 +147,14 @@
   max-width: 400px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   overflow: hidden;
-  /* Removed animation for stability */
 }
 
 .modal-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid #eee;
+  padding: 20px;
+  border-bottom: 1px solid #dee2e6;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f8f9fa;
-}
-
-.modal-header h5 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
 }
 
 .modal-body {
@@ -118,20 +163,9 @@
 
 .modal-footer {
   padding: 15px 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #dee2e6;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  background-color: #f8f9fa;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
 }
 

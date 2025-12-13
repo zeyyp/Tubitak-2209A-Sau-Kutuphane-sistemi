@@ -63,6 +63,14 @@ services:
         condition: service_healthy
     networks:
       - library_network
+    restart: on-failure:10
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Waiting for RabbitMQ to be fully ready..."
+        sleep 15
+        echo "Starting Reservation Service..."
+        dotnet ReservationService.dll
 
   # Turnstile Service (Port 5003)
   turnstile-service:
@@ -87,6 +95,7 @@ services:
       - rabbitmq
     networks:
       - library_network
+    restart: on-failure:5
 
   # Feedback Service (Port 5004)
   feedback-service:
@@ -166,18 +175,34 @@ services:
     networks:
       - library_network
     volumes:
-      - ./restore_identity.sql:/scripts/restore_identity.sql
-      - ./restore_data.sql:/scripts/restore_data.sql
+      - ./init-db:/scripts
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
+        echo "=== Starting Database Initialization ==="
         echo "Waiting for migrations to complete..."
-        sleep 25
+        sleep 30
+        
+        echo "Checking if identity tables exist..."
+        until PGPASSWORD=78 psql -h postgres -U postgres -d LibraryReservation -c "SELECT 1 FROM \"AspNetRoles\" LIMIT 1;" > /dev/null 2>&1
+        do
+          echo "Waiting for identity tables to be created..."
+          sleep 5
+        done
+        
+        echo "Checking if reservation tables exist..."
+        until PGPASSWORD=78 psql -h postgres -U postgres -d LibraryReservation -c "SELECT 1 FROM \"Tables\" LIMIT 1;" > /dev/null 2>&1
+        do
+          echo "Waiting for reservation tables to be created..."
+          sleep 5
+        done
+        
+        echo "All migrations completed!"
         echo "Restoring identity data..."
-        PGPASSWORD=78 psql -h postgres -U postgres -d LibraryReservation -f /scripts/restore_identity.sql
+        PGPASSWORD=78 psql -h postgres -U postgres -d LibraryReservation -f /scripts/02-restore-identity.sql
         echo "Restoring reservation data..."
-        PGPASSWORD=78 psql -h postgres -U postgres -d LibraryReservation -f /scripts/restore_data.sql
-        echo "Database initialization completed!"
+        PGPASSWORD=78 psql -h postgres -U postgres -d LibraryReservation -f /scripts/03-restore-data.sql
+        echo "=== Database initialization completed successfully! ==="
     restart: "no"
 
 volumes:
