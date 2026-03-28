@@ -6,11 +6,11 @@ echo "  Başlatılıyor..."
 echo "================================================="
 echo ""
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo "❌ Docker çalışmıyor! Lütfen Docker Desktop'ı başlatın."
-    exit 1
-fi
+# Check if Docker is running (Devre dışı bırakıldı - Railway/Cloud için)
+# if ! docker info > /dev/null 2>&1; then
+#     echo "❌ Docker çalışmıyor! Lütfen Docker Desktop'ı başlatın."
+#     exit 1
+# fi
 
 echo "✓ Docker çalışıyor"
 echo ""

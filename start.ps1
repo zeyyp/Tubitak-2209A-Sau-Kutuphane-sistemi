@@ -7,14 +7,14 @@ Write-Host "  Başlatılıyor..." -ForegroundColor Cyan
 Write-Host "=================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Docker kontrolü
-try {
-    docker info | Out-Null
-    Write-Host "✓ Docker çalışıyor" -ForegroundColor Green
-} catch {
-    Write-Host "❌ Docker çalışmıyor! Lütfen Docker Desktop'ı başlatın." -ForegroundColor Red
-    exit 1
-}
+# Docker kontrolü (Devre dışı bırakıldı - Railway/Cloud için)
+# try {
+#     docker info | Out-Null
+#     Write-Host "✓ Docker çalışıyor" -ForegroundColor Green
+# } catch {
+#     Write-Host "❌ Docker çalışmıyor! Lütfen Docker Desktop'ı başlatın." -ForegroundColor Red
+#     exit 1
+# }
 
 Write-Host ""
 
