@@ -59,9 +59,31 @@ export class ReservationService {
   enterTurnstile(studentNumber: string): Observable<any> {
     // Turnstile Service is on port 5003, but via Gateway it is /api/Turnstile
     // The Gateway is on port 5010.
-    // My ReservationService apiUrl is http://localhost:5010/api/Reservation
+    // My ReservationService apiUrl is https://sau-backend-api.loca.lt/api/Reservation
     // So I need to change the base url for this call.
     return this.http.post('http://localhost:5010/api/Turnstile/Enter', { studentNumber });
+  }
+
+  // Exam Week Management
+  setExamWeek(facultyId: number, examWeekStart: string, examWeekEnd: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/SetExamWeek`, { facultyId, examWeekStart, examWeekEnd });
+  }
+
+  getExamWeeks(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/ExamWeeks`);
+  }
+
+  getFaculties(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/Faculties`);
+  }
+
+  updateStudentDepartment(studentNumber: string, facultyId: number, department: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/UpdateStudentDepartment`, { studentNumber, facultyId, department });
+  }
+
+  // Puan Bazlı Erişim Kontrolü
+  checkAccess(studentNumber: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/CheckAccess`, { studentNumber });
   }
 
 }

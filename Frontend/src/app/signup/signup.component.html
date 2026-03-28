@@ -37,10 +37,27 @@
                 </label>
                 <select class="form-select" id="academicLevel" [(ngModel)]="user.academicLevel" name="academicLevel">
                   <option value="Lisans">📚 Lisans</option>
-                  <option value="Yüksek Lisans">🎓 Yüksek Lisans</option>
+                  <option value="YüksekLisans">🎓 Yüksek Lisans</option>
                   <option value="Doktora">🎯 Doktora</option>
                   <option value="Akademisyen">👨‍🏫 Akademisyen</option>
                 </select>
+              </div>
+              <div class="mb-3">
+                <label for="facultyId" class="form-label fw-bold">
+                  <i class="bi bi-building text-success me-2"></i>Fakülte
+                </label>
+                <select class="form-select" id="facultyId" [(ngModel)]="user.facultyId" name="facultyId" required>
+                  <option [value]="0" disabled>Fakülte seçiniz</option>
+                  <option *ngFor="let faculty of faculties" [value]="faculty.id">
+                    {{ faculty.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="department" class="form-label fw-bold">
+                  <i class="bi bi-bookmark-fill text-success me-2"></i>Bölüm
+                </label>
+                <input type="text" class="form-control" id="department" [(ngModel)]="user.department" name="department" required placeholder="Örn: Bilgisayar Mühendisliği">
               </div>
               <div class="mb-4">
                 <label for="password" class="form-label fw-bold">

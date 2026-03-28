@@ -10,10 +10,12 @@ namespace FeedbackService.Controllers;
 public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackRepository _repository;
+    private readonly IAIAnalysisService _aiService;
 
-    public FeedbackController(IFeedbackRepository repository)
+    public FeedbackController(IFeedbackRepository repository, IAIAnalysisService aiService)
     {
         _repository = repository;
+        _aiService = aiService;
     }
 
     [HttpPost("Submit")]
@@ -29,9 +31,16 @@ public class FeedbackController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetFeedbacks(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetFeedbacks([FromQuery] string? studentNumber, CancellationToken cancellationToken)
     {
         var feedbacks = await _repository.GetAllAsync(cancellationToken);
+        
+        // Eğer studentNumber belirtilmişse, sadece o öğrencinin geri bildirimlerini döndür
+        if (!string.IsNullOrEmpty(studentNumber))
+        {
+            feedbacks = feedbacks.Where(f => f.StudentNumber == studentNumber).ToList();
+        }
+        
         return Ok(feedbacks);
     }
 
@@ -39,14 +48,18 @@ public class FeedbackController : ControllerBase
     public async Task<IActionResult> GetAnalysis(CancellationToken cancellationToken)
     {
         var feedbacks = await _repository.GetAllAsync(cancellationToken);
-        var analysis = new
-        {
-            TotalFeedbacks = feedbacks.Count,
-            Summary = "Kullanıcılar genel olarak rezervasyon sisteminden memnun, ancak masa bulma konusunda bazen zorluk yaşıyorlar.",
-            Sentiment = "Positive",
-            Suggestions = new List<string> { "Daha fazla masa eklenmeli", "Mobil uygulama geliştirilmeli" }
-        };
-
+        var feedbackList = feedbacks.ToList();
+        var analysis = await _aiService.AnalyzeFeedbacksAsync(feedbackList, cancellationToken);
         return Ok(analysis);
     }
+
+    [HttpGet("Summary")]
+    public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
+    {
+        var feedbacks = await _repository.GetAllAsync(cancellationToken);
+        var feedbackList = feedbacks.ToList();
+        var summary = await _aiService.GenerateSummaryAsync(feedbackList, cancellationToken);
+        return Ok(new { summary });
+    }
 }
+

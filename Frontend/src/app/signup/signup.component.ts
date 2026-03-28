@@ -1,6 +1,7 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { ReservationService } from '../services/reservation.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -11,27 +12,65 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css']
 })
-export class SignupComponent {
+export class SignupComponent implements OnInit {
   user = {
     studentNumber: '',
     fullName: '',
     email: '',
     password: '',
-    academicLevel: 'Lisans'
+    academicLevel: 'Lisans',
+    facultyId: 0,
+    department: ''
   };
+  faculties: any[] = [];
   isLoading: boolean = false;
+  isLoadingFaculties: boolean = false;
 
   constructor(
     private authService: AuthService,
+    private reservationService: ReservationService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
+  ngOnInit(): void {
+    this.loadFaculties();
+  }
+
+  loadFaculties() {
+    this.isLoadingFaculties = true;
+    this.reservationService.getFaculties().subscribe({
+      next: (data) => {
+        this.faculties = Array.isArray(data) ? data : [];
+        this.isLoadingFaculties = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.faculties = [];
+        this.isLoadingFaculties = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   onSignup() {
     if (this.isLoading) return;
 
+    // Fakülte ve bölüm kontrolü
+    if (!this.user.facultyId || this.user.facultyId === 0) {
+      alert('Lütfen fakülte seçiniz.');
+      return;
+    }
+
+    if (!this.user.department || this.user.department.trim() === '') {
+      alert('Lütfen bölüm giriniz.');
+      return;
+    }
+
     this.isLoading = true;
     this.cdr.detectChanges();
+
+    console.log('Kayıt verisi:', this.user); // Debug için
 
     this.authService.register(this.user).subscribe({
       next: () => {

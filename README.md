@@ -144,6 +144,52 @@ docker-compose up -d frontend
 3. Verileri sıfırlamak için `docker-compose down -v` kullanın
 4. Production ortamında şifreleri ve connection string'leri değiştirin
 
+---
+
+## 🌍 ngrok ile Demo/Test
+
+Arkadaşlarınıza sistemi test ettirmek için ngrok kullanabilirsiniz.
+
+### ⚡ Hızlı Başlangıç
+
+```powershell
+.\setup-ngrok.ps1
+```
+
+**Detaylı bilgi için:** [NGROK\_SETUP.md](NGROK_SETUP.md) dosyasına bakın.
+
+### Manuel Kurulum
+
+1. **ngrok'u yükleyin:**
+   ```powershell
+   choco install ngrok -y
+   ```
+
+2. **İki terminal açın:**
+   
+   **Terminal 1 (Backend):**
+   ```powershell
+   ngrok http 5010 --region eu
+   ```
+   
+   **Terminal 2 (Frontend):**
+   ```powershell
+   ngrok http 4200 --region eu
+   ```
+
+3. **URL'leri not edin ve Frontend'i güncelleyin:**
+   
+   `Frontend/src/app/config/api.config.ts`:
+   ```typescript
+   NGROK_BACKEND_URL: 'https://YOUR-BACKEND-URL.ngrok-free.app'
+   ```
+
+4. **Arkadaşlarına frontend ngrok URL'ini paylaş!**
+
+**Not:** CORS ayarları ngrok için hazır durumdadır.
+
+---
+
 ### 🤝 Katkıda Bulunma
 
 1. Fork yapın

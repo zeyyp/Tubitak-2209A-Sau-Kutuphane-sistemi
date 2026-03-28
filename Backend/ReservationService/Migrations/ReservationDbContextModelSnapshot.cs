@@ -22,6 +22,57 @@ namespace ReservationService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ReservationService.Data.ExamSchedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("ExamWeekEnd")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("ExamWeekStart")
+                        .HasColumnType("date");
+
+                    b.Property<int>("FacultyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FacultyId")
+                        .IsUnique();
+
+                    b.ToTable("ExamSchedules");
+                });
+
+            modelBuilder.Entity("ReservationService.Data.Faculty", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Faculties");
+                });
+
             modelBuilder.Entity("ReservationService.Data.Reservation", b =>
                 {
                     b.Property<int>("Id")
@@ -29,6 +80,9 @@ namespace ReservationService.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time without time zone");
@@ -41,6 +95,9 @@ namespace ReservationService.Migrations
 
                     b.Property<DateOnly>("ReservationDate")
                         .HasColumnType("date");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
 
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time without time zone");
@@ -75,11 +132,14 @@ namespace ReservationService.Migrations
                     b.Property<DateOnly?>("BanUntil")
                         .HasColumnType("date");
 
+                    b.Property<string>("Department")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("FacultyId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("LastNoShowProcessedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("PenaltyPoints")
-                        .HasColumnType("integer");
 
                     b.Property<string>("StudentNumber")
                         .IsRequired()
@@ -90,6 +150,8 @@ namespace ReservationService.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("FacultyId");
 
                     b.HasIndex("StudentNumber")
                         .IsUnique();
@@ -115,6 +177,34 @@ namespace ReservationService.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tables");
+                });
+
+            modelBuilder.Entity("ReservationService.Data.ExamSchedule", b =>
+                {
+                    b.HasOne("ReservationService.Data.Faculty", "Faculty")
+                        .WithMany("ExamSchedules")
+                        .HasForeignKey("FacultyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Faculty");
+                });
+
+            modelBuilder.Entity("ReservationService.Data.StudentProfile", b =>
+                {
+                    b.HasOne("ReservationService.Data.Faculty", "Faculty")
+                        .WithMany("StudentProfiles")
+                        .HasForeignKey("FacultyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Faculty");
+                });
+
+            modelBuilder.Entity("ReservationService.Data.Faculty", b =>
+                {
+                    b.Navigation("ExamSchedules");
+
+                    b.Navigation("StudentProfiles");
                 });
 #pragma warning restore 612, 618
         }

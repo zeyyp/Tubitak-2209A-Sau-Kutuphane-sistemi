@@ -19,36 +19,52 @@ if (isDocker)
 
 builder.Configuration.AddJsonFile(ocelotConfigFile, optional: false, reloadOnChange: true);
 builder.Services.AddOcelot(builder.Configuration);
+
+// CORS Politikası - ngrok için geçici olarak tüm origin'lere açık
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular",
-        policy =>
-        {
-            policy.SetIsOriginAllowed(origin =>
-            {
-                if (string.IsNullOrWhiteSpace(origin))
-                {
-                    return false;
-                }
-                try
-                {
-                    var uri = new Uri(origin);
-                    return string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase);
-                }
-                catch
-                {
-                    return false;
-                }
-            })
+    options.AddPolicy("SecurePolicy", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true)  // Tüm origin'lere izin (ngrok için)
+            .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowAnyMethod();
-        });
+            .AllowCredentials();
+    });
 });
+
+// HTTPS Zorunluluğu (Production için)
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
+        options.Preload = true;
+    });
+}
 
 
 var app = builder.Build();
 
-app.UseCors("AllowAngular");
+// Security Headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+    await next();
+});
+
+// HTTPS Redirect (Production)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
+
+app.UseCors("SecurePolicy");
 
 app.MapGet("/", () => "API Gateway is running...").WithMetadata(new AllowAnonymousAttribute());
 

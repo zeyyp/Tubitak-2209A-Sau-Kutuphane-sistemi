@@ -87,46 +87,112 @@
         </div>
       </div>
     </div>
-    <!-- Feedbacks Section -->
+    <!-- AI Feedback Analysis Section -->
     <div class="admin-section">
-      <div class="section-header">
-        <h4><i class="bi bi-chat-left-text me-2"></i>Gelen Geri Bildirimler</h4>
+      <div class="section-header d-flex justify-content-between align-items-center">
+        <h4><i class="bi bi-lightbulb me-2"></i>Geri Bildirim AI Analizi (ChatGPT)</h4>
+        <button class="btn btn-primary" (click)="refreshAIAnalysis()" [disabled]="isLoadingAIAnalysis">
+          <i class="bi bi-arrow-clockwise me-2"></i>
+          {{ isLoadingAIAnalysis ? 'Analiz Yapılıyor...' : 'Analizi Yenile' }}
+        </button>
       </div>
       <div class="card">
         <div class="card-body">
-          <div *ngIf="isLoadingFeedbacks" class="text-center py-4">
+          <div *ngIf="isLoadingAIAnalysis" class="text-center py-4">
             <div class="spinner-border text-info" role="status">
               <span class="visually-hidden">Yükleniyor...</span>
             </div>
-            <p class="mt-2 text-muted">Geri bildirimler yükleniyor...</p>
+            <p class="mt-2 text-muted">AI analizi yapılıyor...</p>
           </div>
-          <div *ngIf="!isLoadingFeedbacks && feedbacks.length === 0" class="text-center py-4">
+
+          <div *ngIf="!isLoadingAIAnalysis && aiAnalysisError" class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>{{ aiAnalysisError }}
+          </div>
+
+          <div *ngIf="!isLoadingAIAnalysis && !aiAnalysisError && !aiAnalysis" class="text-center py-4">
             <i class="bi bi-chat-square-dots display-4 text-muted"></i>
-            <p class="text-muted mt-3">Geri bildirim bulunamadı.</p>
+            <p class="text-muted mt-3">AI analizi henüz yapılmadı.</p>
+            <p class="text-muted">Analiz yapmak için yukarıdaki "Analizi Yenile" butonuna tıklayın.</p>
           </div>
-          <div *ngIf="!isLoadingFeedbacks && feedbacks.length > 0" class="table-responsive">
-            <table class="admin-table table table-hover">
-              <thead>
-                <tr>
-                  <th><i class="bi bi-person me-1"></i>Öğrenci No</th>
-                  <th><i class="bi bi-star me-1"></i>Puan</th>
-                  <th><i class="bi bi-chat-quote me-1"></i>Yorum</th>
-                  <th><i class="bi bi-calendar3 me-1"></i>Tarih</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let feedback of feedbacks">
-                  <td><span class="badge bg-secondary">{{ feedback.studentNumber || feedback.StudentNumber }}</span></td>
-                  <td>
-                    <span class="text-warning">
-                      <i *ngFor="let star of [1,2,3,4,5]" class="bi" [ngClass]="star <= (feedback.rating || feedback.Rating) ? 'bi-star-fill' : 'bi-star'"></i>
-                    </span>
-                  </td>
-                  <td>{{ feedback.comment || feedback.Comment }}</td>
-                  <td>{{ feedback.createdAt || feedback.CreatedAt | date:'short' }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div *ngIf="!isLoadingAIAnalysis && aiAnalysis" class="ai-analysis-container">
+            <!-- Özet Bilgi Kartları -->
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <div class="stat-card stat-info">
+                  <i class="bi bi-chat-dots"></i>
+                  <div>
+                    <h3>{{ aiAnalysis.totalFeedbacks }}</h3>
+                    <p>Toplam Geri Bildirim</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="stat-card" [ngClass]="{
+                  'stat-success': aiAnalysis.sentiment?.toLowerCase() === 'pozitif',
+                  'stat-warning': aiAnalysis.sentiment?.toLowerCase() === 'nötr',
+                  'stat-danger': aiAnalysis.sentiment?.toLowerCase() === 'negatif'
+                }">
+                  <i class="bi" [ngClass]="{
+                    'bi-emoji-smile': aiAnalysis.sentiment?.toLowerCase() === 'pozitif',
+                    'bi-emoji-neutral': aiAnalysis.sentiment?.toLowerCase() === 'nötr',
+                    'bi-emoji-frown': aiAnalysis.sentiment?.toLowerCase() === 'negatif'
+                  }"></i>
+                  <div>
+                    <h3>{{ aiAnalysis.sentiment || 'Nötr' }}</h3>
+                    <p>Genel Duygu</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="stat-card stat-primary">
+                  <i class="bi bi-list-check"></i>
+                  <div>
+                    <h3>{{ aiAnalysis.suggestions?.length || 0 }}</h3>
+                    <p>Öneri Sayısı</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Genel Özet -->
+            <div class="analysis-section">
+              <h5><i class="bi bi-file-text me-2"></i>Genel Özet</h5>
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                {{ aiAnalysis.overallSummary || aiAnalysis.summary || 'Özet bulunamadı.' }}
+              </div>
+            </div>
+
+            <!-- Ana Sorunlar -->
+            <div class="analysis-section" *ngIf="aiAnalysis.keyIssues && aiAnalysis.keyIssues.length > 0">
+              <h5><i class="bi bi-exclamation-triangle me-2"></i>Tespit Edilen Sorunlar</h5>
+              <ul class="issue-list">
+                <li *ngFor="let issue of aiAnalysis.keyIssues">
+                  <i class="bi bi-dash-circle text-danger me-2"></i>{{ issue }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- Öneriler -->
+            <div class="analysis-section" *ngIf="aiAnalysis.suggestions && aiAnalysis.suggestions.length > 0">
+              <h5><i class="bi bi-lightbulb-fill me-2"></i>AI Önerileri</h5>
+              <ul class="suggestion-list">
+                <li *ngFor="let suggestion of aiAnalysis.suggestions">
+                  <i class="bi bi-check-circle text-success me-2"></i>{{ suggestion }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- Konu Frekansı -->
+            <div class="analysis-section" *ngIf="aiAnalysis.topicFrequency && objectKeys(aiAnalysis.topicFrequency).length > 0">
+              <h5><i class="bi bi-bar-chart me-2"></i>En Çok Bahsedilen Konular</h5>
+              <div class="topic-badges">
+                <span *ngFor="let topic of objectKeys(aiAnalysis.topicFrequency)" class="badge bg-secondary me-2 mb-2">
+                  {{ topic }}: <strong>{{ aiAnalysis.topicFrequency[topic] }}</strong>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -187,6 +253,82 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exam Week Management Section -->
+    <div class="admin-section">
+      <div class="section-header">
+        <h4><i class="bi bi-calendar2-week me-2"></i>Sınav Haftası Yönetimi</h4>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h5 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Yeni Sınav Haftası Ekle</h5>
+              <form (ngSubmit)="onSetExamWeek()">
+                <div class="mb-3">
+                  <label for="facultyId" class="form-label">Fakülte</label>
+                  <select class="form-select" id="facultyId"
+                          [(ngModel)]="newExamWeek.facultyId" name="facultyId" required>
+                    <option [value]="0" disabled>Fakülte seçiniz</option>
+                    <option *ngFor="let faculty of faculties" [value]="faculty.id">
+                      {{ faculty.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="examWeekStart" class="form-label">Başlangıç Tarihi</label>
+                  <input type="date" class="form-control" id="examWeekStart"
+                         [(ngModel)]="newExamWeek.examWeekStart" name="examWeekStart" required>
+                </div>
+                <div class="mb-3">
+                  <label for="examWeekEnd" class="form-label">Bitiş Tarihi</label>
+                  <input type="date" class="form-control" id="examWeekEnd"
+                         [(ngModel)]="newExamWeek.examWeekEnd" name="examWeekEnd" required>
+                </div>
+                <div *ngIf="examWeekMessage" class="alert alert-success">
+                  <i class="bi bi-check-circle me-2"></i>{{ examWeekMessage }}
+                </div>
+                <div *ngIf="examWeekError" class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle me-2"></i>{{ examWeekError }}
+                </div>
+                <button type="submit" class="btn btn-primary" [disabled]="isSavingExamWeek">
+                  <span *ngIf="!isSavingExamWeek"><i class="bi bi-save me-2"></i>Kaydet</span>
+                  <span *ngIf="isSavingExamWeek">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Kaydediliyor...
+                  </span>
+                </button>
+              </form>
+            </div>
+            <div class="col-md-6">
+              <h5 class="mb-3"><i class="bi bi-list-ul me-2"></i>Mevcut Sınav Haftaları</h5>
+              <div *ngIf="isLoadingExamWeeks" class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Yükleniyor...</span>
+                </div>
+              </div>
+              <div *ngIf="!isLoadingExamWeeks && examWeeks.length === 0" class="text-center py-3">
+                <i class="bi bi-inbox display-6 text-muted"></i>
+                <p class="text-muted mt-2">Henüz sınav haftası tanımlanmamış.</p>
+              </div>
+              <div *ngIf="!isLoadingExamWeeks && examWeeks.length > 0" class="list-group">
+                <div *ngFor="let week of examWeeks" class="list-group-item">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1"><i class="bi bi-mortarboard-fill me-2"></i>{{ week.facultyName }}</h6>
+                    <small class="text-muted">{{ week.studentCount }} öğrenci</small>
+                  </div>
+                  <p class="mb-1">
+                    <i class="bi bi-calendar-event me-1"></i>
+                    <strong>{{ week.examWeekStart }}</strong> -
+                    <strong>{{ week.examWeekEnd }}</strong>
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

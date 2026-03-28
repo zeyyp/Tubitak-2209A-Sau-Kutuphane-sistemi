@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReservationService.Data;
+using ReservationService.Services;
 using Shared.Events;
 
 namespace ReservationService.Controllers
@@ -17,6 +18,7 @@ namespace ReservationService.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<ReservationController> _logger;
         private readonly RabbitMQPublisher _publisher;
+        private readonly PriorityService _priorityService;
 
         private const int EarlyToleranceMinutes = 5;  // Başlangıçtan 5dk önce giriş yapılabilir
         private const int EntryGracePeriodMinutes = 15; // Başlangıçtan 15dk sonrasına kadar giriş yapılabilir, sonra ceza
@@ -29,10 +31,11 @@ namespace ReservationService.Controllers
 
         private static readonly Dictionary<string, StudentTypeRule> StudentTypeRules = new(StudentTypeComparer)
         {
-            ["lisans"] = new StudentTypeRule(Priority: 1, MaxAdvanceDays: 3, MaxActiveReservations: 1),
-            ["yukseklisans"] = new StudentTypeRule(Priority: 2, MaxAdvanceDays: 5, MaxActiveReservations: 2),
-            ["yükseklisans"] = new StudentTypeRule(Priority: 2, MaxAdvanceDays: 5, MaxActiveReservations: 2),
-            ["doktora"] = new StudentTypeRule(Priority: 3, MaxAdvanceDays: 7, MaxActiveReservations: 3),
+            // Herkes için eşit: 2 aktif rezervasyon, sadece bugün + yarın (1 gün ileri)
+            ["lisans"] = new StudentTypeRule(Priority: 1, MaxAdvanceDays: 1, MaxActiveReservations: 2),
+            ["yukseklisans"] = new StudentTypeRule(Priority: 2, MaxAdvanceDays: 1, MaxActiveReservations: 2),
+            ["yükseklisans"] = new StudentTypeRule(Priority: 2, MaxAdvanceDays: 1, MaxActiveReservations: 2),
+            ["doktora"] = new StudentTypeRule(Priority: 3, MaxAdvanceDays: 1, MaxActiveReservations: 2),
             // Admin için kısıtları esnetiyoruz
             ["admin"] = new StudentTypeRule(Priority: 99, MaxAdvanceDays: 30, MaxActiveReservations: 10)
         };
@@ -46,12 +49,24 @@ namespace ReservationService.Controllers
             ["admin"] = "Admin"
         };
 
-        public ReservationController(ReservationDbContext context, IHttpClientFactory httpClientFactory, ILogger<ReservationController> logger, RabbitMQPublisher publisher)
+        // Scoring sistemi için sabitler
+        private const int ScoreDoktora = 300;
+        private const int ScoreYuksekLisans = 200;
+        private const int ScoreLisans = 100;
+        private const int ScoreLisansExamBonus = 50; // Sadece Lisans için sınav haftası bonusu
+
+        public ReservationController(
+            ReservationDbContext context, 
+            IHttpClientFactory httpClientFactory, 
+            ILogger<ReservationController> logger, 
+            RabbitMQPublisher publisher,
+            PriorityService priorityService)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _publisher = publisher;
             _logger = logger;
+            _priorityService = priorityService;
         }
 
         private string? GetCurrentStudentNumber()
@@ -156,6 +171,28 @@ namespace ReservationService.Controllers
             var profile = await GetOrCreateStudentProfileAsync(request.StudentNumber, request.StudentType);
             await ApplyNoShowPenaltiesAsync(profile);
 
+            // ===== PUAN BAZLI ERİŞİM KONTROLÜ =====
+            // Admin kullanıcıları kontrol dışında tut
+            if (!IsAdmin || !request.StudentNumber.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase))
+            {
+                var accessCheck = await _priorityService.CheckAccessAsync(request.StudentNumber);
+                if (!accessCheck.CanAccess)
+                {
+                    _logger.LogWarning(
+                        "Access denied for {StudentNumber}. Score: {Score}, AllowedTime: {AllowedTime}, CurrentTime: {CurrentTime}",
+                        request.StudentNumber, accessCheck.UserScore, accessCheck.AllowedTime, accessCheck.CurrentTime
+                    );
+                    return BadRequest(new
+                    {
+                        message = $"Rezervasyon sistemi sizin için henüz açılmadı. Puanınız: {accessCheck.UserScore}, Erişim saatiniz: {accessCheck.AllowedTime:hh\\:mm}",
+                        userScore = accessCheck.UserScore,
+                        allowedTime = accessCheck.AllowedTime.ToString(@"hh\:mm"),
+                        remainingMinutes = accessCheck.RemainingMinutes
+                    });
+                }
+            }
+            // ===== PUAN BAZLI ERİŞİM KONTROLÜ SONU =====
+
             var today = DateOnly.FromDateTime(DateTime.Now);
 
             if (rEnd <= rStart)
@@ -199,8 +236,24 @@ namespace ReservationService.Controllers
             {
                 return BadRequest(new
                 {
-                    message = $"{profile.StudentType} öğrencileri en fazla {rule.MaxAdvanceDays} gün öncesine kadar rezervasyon oluşturabilir."
+                    message = $"En fazla {rule.MaxAdvanceDays} gün sonrası için rezervasyon oluşturabilirsiniz (bugün ve yarın)."
                 });
+            }
+
+            // Yarın için rezervasyon açılma saati kontrolü
+            if (rDate > today)
+            {
+                var accessTime = await _priorityService.GetAccessTimeAsync(request.StudentNumber);
+                var now = DateTime.Now.TimeOfDay;
+                
+                if (now < accessTime)
+                {
+                    var accessTimeStr = $"{accessTime.Hours:D2}:{accessTime.Minutes:D2}";
+                    return BadRequest(new
+                    {
+                        message = $"Yarın için rezervasyonlar sizin için saat {accessTimeStr}'de açılacak. Şu an sadece bugün için rezervasyon yapabilirsiniz."
+                    });
+                }
             }
 
             var activeReservationCount = await _context.Reservations
@@ -210,7 +263,7 @@ namespace ReservationService.Controllers
             {
                 return BadRequest(new
                 {
-                    message = $"{profile.StudentType} öğrencileri aynı anda en fazla {rule.MaxActiveReservations} aktif rezervasyona sahip olabilir."
+                    message = $"Aynı anda en fazla {rule.MaxActiveReservations} aktif rezervasyonunuz olabilir. Lütfen mevcut rezervasyonlarınızı iptal edin veya kullanın."
                 });
             }
 
@@ -243,6 +296,9 @@ namespace ReservationService.Controllers
                 });
             }
 
+            // Score hesapla
+            int score = await CalculateScoreAsync(profile, rDate);
+
             var reservation = new Reservation
             {
                 TableId = request.TableId,
@@ -252,7 +308,9 @@ namespace ReservationService.Controllers
                 EndTime = rEnd,
                 IsAttended = false,
                 PenaltyProcessed = false,
-                StudentType = profile.StudentType
+                StudentType = profile.StudentType,
+                Score = score,
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Reservations.Add(reservation);
@@ -319,6 +377,7 @@ namespace ReservationService.Controllers
                     EndTime = res.EndTime.ToString("HH:mm"),
                     res.IsAttended,
                     res.StudentType,
+                    res.Score,
                     TableNumber = table?.TableNumber ?? "Bilinmiyor",
                     FloorId = table?.FloorId
                 });
@@ -545,24 +604,13 @@ namespace ReservationService.Controllers
                 var reservationStart = reservation.ReservationDate.ToDateTime(reservation.StartTime);
                 if (reservationStart.AddMinutes(EntryGracePeriodMinutes) < nowLocal)
                 {
-                    profile.PenaltyPoints++;
+                    // Direkt 2 günlük ban uygula
+                    profile.BanUntil = DateOnly.FromDateTime(nowLocal.AddDays(2));
+                    profile.BanReason = "Rezervasyonunuza katılmadığınız için sistem 2 gün ceza uyguladı.";
                     reservation.PenaltyProcessed = true;
                     stateChanged = true;
                     penaltyAppliedThisCycle = true;
                 }
-            }
-
-            if (profile.PenaltyPoints >= PenaltyThreshold)
-            {
-                profile.PenaltyPoints = 0;
-                profile.BanUntil = DateOnly.FromDateTime(nowLocal.AddDays(BanDurationDays));
-                profile.BanReason = "Rezervasyonunuza katılmadığınız için sistem 7 gün ceza uyguladı.";
-                stateChanged = true;
-            }
-            else if (penaltyAppliedThisCycle && string.IsNullOrEmpty(profile.BanReason))
-            {
-                profile.BanReason = "Rezervasyonunuza katılmadığınız için ceza puanı aldınız.";
-                stateChanged = true;
             }
 
             if (stateChanged)
@@ -599,7 +647,7 @@ namespace ReservationService.Controllers
             {
                 StudentNumber = profile.StudentNumber,
                 StudentType = profile.StudentType,
-                PenaltyPoints = profile.PenaltyPoints,
+                PenaltyPoints = 0,
                 BanUntil = profile.BanUntil?.ToString("yyyy-MM-dd"),
                 BanReason = profile.BanReason,
                 LastNoShowProcessedAt = profile.LastNoShowProcessedAt
@@ -612,16 +660,15 @@ namespace ReservationService.Controllers
         public async Task<IActionResult> GetPenalties()
         {
             var profiles = await _context.StudentProfiles
-                .Where(p => p.BanUntil != null || p.PenaltyPoints > 0)
+                .Where(p => p.BanUntil != null)
                 .OrderByDescending(p => p.BanUntil)
-                .ThenByDescending(p => p.PenaltyPoints)
                 .ToListAsync();
 
             var result = profiles.Select(p => new StudentProfileDto
             {
                 StudentNumber = p.StudentNumber,
                 StudentType = p.StudentType,
-                PenaltyPoints = p.PenaltyPoints,
+                PenaltyPoints = 0,
                 BanUntil = p.BanUntil?.ToString("yyyy-MM-dd"),
                 BanReason = p.BanReason,
                 LastNoShowProcessedAt = p.LastNoShowProcessedAt
@@ -734,6 +781,229 @@ namespace ReservationService.Controllers
 
             return Ok(new { allowed = false, message = "Şu an için aktif bir rezervasyonunuz bulunmamaktadır." });
         }
+
+        private async Task<int> CalculateScoreAsync(StudentProfile profile, DateOnly reservationDate)
+        {
+            // Doktora: 300 puan (sınav bonusu yok)
+            if (StudentTypeComparer.Equals(profile.StudentType, "Doktora"))
+            {
+                return ScoreDoktora;
+            }
+
+            // Yüksek Lisans: 200 puan (sınav bonusu yok)
+            if (StudentTypeComparer.Equals(profile.StudentType, "YüksekLisans"))
+            {
+                return ScoreYuksekLisans;
+            }
+
+            // Lisans: Base 100 puan
+            int score = ScoreLisans;
+
+            // Sınav haftasındaysa +50 bonus (sadece Lisans için)
+            if (profile.FacultyId.HasValue)
+            {
+                var examSchedule = await _context.ExamSchedules
+                    .FirstOrDefaultAsync(e => e.FacultyId == profile.FacultyId.Value);
+
+                if (examSchedule != null)
+                {
+                    if (reservationDate >= examSchedule.ExamWeekStart && reservationDate <= examSchedule.ExamWeekEnd)
+                    {
+                        score += ScoreLisansExamBonus;
+                    }
+                }
+            }
+
+            return score;
+        }
+
+        /// <summary>
+        /// Öğrencinin rezervasyon sistemine erişim durumunu kontrol eder
+        /// </summary>
+        [HttpPost("CheckAccess")]
+        public async Task<IActionResult> CheckAccess([FromBody] AccessCheckRequest request)
+        {
+            if (string.IsNullOrEmpty(request.StudentNumber))
+            {
+                return BadRequest(new { message = "Öğrenci numarası gerekli." });
+            }
+
+            var accessResult = await _priorityService.CheckAccessAsync(request.StudentNumber);
+
+            return Ok(new
+            {
+                canAccess = accessResult.CanAccess,
+                userScore = accessResult.UserScore,
+                allowedTime = accessResult.AllowedTime.ToString(@"hh\:mm"),
+                currentTime = accessResult.CurrentTime.ToString(@"hh\:mm\:ss"),
+                remainingMinutes = accessResult.RemainingMinutes,
+                message = accessResult.CanAccess 
+                    ? "Rezervasyon yapabilirsiniz." 
+                    : $"Rezervasyon sistemi {accessResult.AllowedTime:hh\\:mm} saatinde açılacak. Puanınız: {accessResult.UserScore}"
+            });
+        }
+
+        [HttpPost("SetExamWeek")]
+        public async Task<IActionResult> SetExamWeek([FromBody] SetExamWeekRequest request)
+        {
+            if (!IsAdmin)
+            {
+                return Forbid();
+            }
+
+            if (request.FacultyId <= 0)
+            {
+                return BadRequest(new { message = "Geçerli bir Fakülte seçilmelidir." });
+            }
+
+            if (!DateOnly.TryParse(request.ExamWeekStart, out var startDate) ||
+                !DateOnly.TryParse(request.ExamWeekEnd, out var endDate))
+            {
+                return BadRequest(new { message = "Geçersiz tarih formatı." });
+            }
+
+            if (endDate < startDate)
+            {
+                return BadRequest(new { message = "Bitiş tarihi başlangıç tarihinden önce olamaz." });
+            }
+
+            // Fakülte var mı kontrol et
+            var faculty = await _context.Faculties.FindAsync(request.FacultyId);
+            if (faculty == null)
+            {
+                return NotFound(new { message = "Fakülte bulunamadı." });
+            }
+
+            // ExamSchedule tablosunda kontrol et - varsa güncelle, yoksa oluştur
+            var examSchedule = await _context.ExamSchedules
+                .FirstOrDefaultAsync(e => e.FacultyId == request.FacultyId);
+
+            if (examSchedule == null)
+            {
+                // Yeni fakülte sınav haftası oluştur
+                examSchedule = new ExamSchedule
+                {
+                    FacultyId = request.FacultyId,
+                    ExamWeekStart = startDate,
+                    ExamWeekEnd = endDate,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.ExamSchedules.Add(examSchedule);
+            }
+            else
+            {
+                // Mevcut sınav haftasını güncelle
+                examSchedule.ExamWeekStart = startDate;
+                examSchedule.ExamWeekEnd = endDate;
+                examSchedule.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Bu fakültede kaç öğrenci var?
+            var studentCount = await _context.StudentProfiles
+                .Where(p => p.FacultyId == request.FacultyId && p.StudentType == "Lisans")
+                .CountAsync();
+
+            _logger.LogInformation("Exam week set for faculty {FacultyId} ({FacultyName}): {Start} to {End}, affects {Count} students", 
+                request.FacultyId, faculty.Name, startDate, endDate, studentCount);
+
+            return Ok(new { 
+                message = $"{faculty.Name} fakültesi için sınav haftası ayarlandı.",
+                affectedStudents = studentCount
+            });
+        }
+
+        [HttpGet("ExamWeeks")]
+        public async Task<IActionResult> GetExamWeeks()
+        {
+            if (!IsAdmin)
+            {
+                return Forbid();
+            }
+
+            var examWeeks = await _context.ExamSchedules
+                .Include(e => e.Faculty)
+                .Select(e => new
+                {
+                    e.Id,
+                    FacultyId = e.FacultyId,
+                    FacultyName = e.Faculty.Name,
+                    ExamWeekStart = e.ExamWeekStart.ToString("yyyy-MM-dd"),
+                    ExamWeekEnd = e.ExamWeekEnd.ToString("yyyy-MM-dd"),
+                    StudentCount = _context.StudentProfiles.Count(p => p.FacultyId == e.FacultyId && p.StudentType == "Lisans")
+                })
+                .OrderBy(x => x.FacultyName)
+                .ToListAsync();
+
+            return Ok(examWeeks);
+        }
+
+        [HttpGet("Faculties")]
+        public async Task<IActionResult> GetFaculties()
+        {
+            var faculties = await _context.Faculties
+                .OrderBy(f => f.Name)
+                .Select(f => new { f.Id, f.Name })
+                .ToListAsync();
+
+            return Ok(faculties);
+        }
+
+        [HttpPost("UpdateStudentDepartment")]
+        public async Task<IActionResult> UpdateStudentDepartment([FromBody] UpdateDepartmentRequest request)
+        {
+            _logger.LogInformation("UpdateStudentDepartment called: StudentNumber={StudentNumber}, FacultyId={FacultyId}, Department={Department}, StudentType={StudentType}",
+                request?.StudentNumber ?? "NULL", request?.FacultyId ?? 0, request?.Department ?? "NULL", request?.StudentType ?? "NULL");
+
+            if (request == null)
+            {
+                _logger.LogWarning("UpdateStudentDepartment: Request is null");
+                return BadRequest(new { message = "Geçersiz istek." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.StudentNumber) || 
+                request.FacultyId <= 0 || 
+                string.IsNullOrWhiteSpace(request.Department))
+            {
+                _logger.LogWarning("UpdateStudentDepartment validation failed: StudentNumber={StudentNumber}, FacultyId={FacultyId}, Department={Department}",
+                    request.StudentNumber, request.FacultyId, request.Department);
+                return BadRequest(new { message = "Öğrenci numarası, fakülte ve bölüm adı zorunludur." });
+            }
+
+            var profile = await _context.StudentProfiles
+                .FirstOrDefaultAsync(p => p.StudentNumber == request.StudentNumber);
+
+            if (profile == null)
+            {
+                // Profil yoksa oluştur
+                profile = new StudentProfile
+                {
+                    StudentNumber = request.StudentNumber,
+                    StudentType = !string.IsNullOrWhiteSpace(request.StudentType) ? request.StudentType : "Lisans",
+                    FacultyId = request.FacultyId,
+                    Department = request.Department
+                };
+                _context.StudentProfiles.Add(profile);
+                _logger.LogInformation("StudentProfile created for {StudentNumber}: Type={Type}, FacultyId={FacultyId}, Department={Department}",
+                    request.StudentNumber, profile.StudentType, request.FacultyId, request.Department);
+            }
+            else
+            {
+                // Profil varsa güncelle
+                profile.FacultyId = request.FacultyId;
+                profile.Department = request.Department;
+                if (!string.IsNullOrWhiteSpace(request.StudentType))
+                {
+                    profile.StudentType = request.StudentType;
+                }
+                _logger.LogInformation("StudentProfile updated for {StudentNumber}", request.StudentNumber);
+            }
+            
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Öğrenci bilgileri güncellendi." });
+        }
     }
 
     public class ReservationRequest
@@ -754,5 +1024,25 @@ namespace ReservationService.Controllers
         public string? BanUntil { get; set; }
         public string? BanReason { get; set; }
         public DateTime? LastNoShowProcessedAt { get; set; }
+    }
+
+    public class SetExamWeekRequest
+    {
+        public int FacultyId { get; set; }
+        public string ExamWeekStart { get; set; } = string.Empty;
+        public string ExamWeekEnd { get; set; } = string.Empty;
+    }
+
+    public class UpdateDepartmentRequest
+    {
+        public string StudentNumber { get; set; } = string.Empty;
+        public int FacultyId { get; set; }
+        public string Department { get; set; } = string.Empty;
+        public string? StudentType { get; set; }
+    }
+
+    public class AccessCheckRequest
+    {
+        public string StudentNumber { get; set; } = string.Empty;
     }
 }

@@ -1,15 +1,99 @@
 <section class="section reservation-section">
   <div class="container">
-    <div class="row justify-content-center">
+    <!-- Yükleniyor -->
+    <div class="row justify-content-center" *ngIf="checkingAccess">
+      <div class="col-md-8 col-lg-6">
+        <div class="card reservation-card">
+          <div class="card-body p-4 text-center">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-3 text-muted">Erişim kontrol ediliyor...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Erişim Engeli -->
+    <div class="row justify-content-center" *ngIf="!checkingAccess && accessDenied && accessCheckResult">
+      <div class="col-md-8 col-lg-6">
+        <div class="card reservation-card border-warning">
+          <div class="card-body p-4 text-center">
+            <div class="access-denied-icon mb-3">
+              <i class="bi bi-clock-history" style="font-size: 4rem; color: #f0ad4e;"></i>
+            </div>
+            <h4 class="card-title text-warning mb-3">
+              <i class="bi bi-hourglass-split"></i> Rezervasyon Sistemi Henüz Açılmadı
+            </h4>
+            <div class="alert alert-warning">
+              <p class="mb-2"><strong>Puanınız:</strong> {{ accessCheckResult.userScore }} puan</p>
+              <p class="mb-2"><strong>Erişim Saatiniz:</strong> {{ accessCheckResult.allowedTime }}</p>
+              <p class="mb-0" *ngIf="accessCheckResult.remainingMinutes > 0">
+                <strong>Kalan Süre:</strong> {{ accessCheckResult.remainingMinutes }} dakika
+              </p>
+            </div>
+            <hr>
+            <div class="priority-info text-start small text-muted">
+              <p class="mb-1"><strong>Öncelik Sıralaması:</strong></p>
+              <ul class="mb-0">
+                <li>🎓 Doktora (300p) → 23:18</li>
+                <li>📚 Yüksek Lisans (200p) → 23:20</li>
+                <li>📝 Sınavlı Lisans (150p) → 23:22</li>
+                <li>👨‍🎓 Lisans (100p) → 23:24</li>
+              </ul>
+            </div>
+            <button class="btn btn-outline-primary mt-3" (click)="checkAccessControl()">
+              <i class="bi bi-arrow-clockwise"></i> Tekrar Kontrol Et
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Normal Rezervasyon Formu -->
+    <div class="row justify-content-center" *ngIf="!checkingAccess && !accessDenied">
       <div class="col-md-8 col-lg-6">
         <div class="card reservation-card">
           <div class="card-body p-4">
             <h4 class="card-title text-center mb-4"><i class="bi bi-calendar-check"></i> Yeni Rezervasyon</h4>
+
+            <!-- Puan bilgisi göster -->
+            <div class="alert alert-info mb-3" *ngIf="accessCheckResult">
+              <small>
+                <i class="bi bi-star-fill text-warning"></i>
+                <strong>Puanınız:</strong> {{ accessCheckResult.userScore }} |
+                <strong>Erişim:</strong> {{ accessCheckResult.allowedTime }}
+              </small>
+            </div>
+
             <form (ngSubmit)="onSearch()" #filterForm="ngForm">
               <div class="row mb-3">
                 <div class="col-md-6">
                   <label class="form-label text-muted small"><i class="bi bi-calendar3"></i> Rezervasyon Tarihi</label>
-                  <input type="date" class="form-control" name="date" [(ngModel)]="filter.date" required>
+                  <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn"
+                            [class.btn-primary]="filter.date === minDate"
+                            [class.btn-outline-primary]="filter.date !== minDate"
+                            (click)="selectDate('today')">
+                      <i class="bi bi-calendar-check"></i> Bugün
+                    </button>
+                    <button type="button" class="btn"
+                            [class.btn-primary]="filter.date === maxDate && canAccessTomorrow"
+                            [class.btn-outline-primary]="filter.date !== maxDate && canAccessTomorrow"
+                            [class.btn-outline-secondary]="!canAccessTomorrow"
+                            [disabled]="!canAccessTomorrow"
+                            (click)="selectDate('tomorrow')">
+                      <i class="bi bi-calendar-plus"></i> Yarın
+                      <i *ngIf="!canAccessTomorrow" class="bi bi-lock-fill ms-1"></i>
+                    </button>
+                  </div>
+                  <input type="hidden" name="date" [(ngModel)]="filter.date" required>
+                  <small *ngIf="!canAccessTomorrow && tomorrowAccessTime" class="text-warning d-block mt-2">
+                    <i class="bi bi-clock"></i> Yarın için rezervasyonlar saat <strong>{{ tomorrowAccessTime }}</strong>'de açılacaktır.
+                  </small>
+                  <small *ngIf="canAccessTomorrow" class="text-success d-block mt-2">
+                    <i class="bi bi-check-circle"></i> Yarın için rezervasyon yapabilirsiniz!
+                  </small>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label text-muted small"><i class="bi bi-building"></i> Kat</label>
@@ -23,11 +107,45 @@
               <div class="row mb-4">
                 <div class="col-md-6">
                   <label class="form-label text-muted small"><i class="bi bi-clock"></i> Başlangıç Saati</label>
-                  <input type="time" class="form-control" name="startTime" [(ngModel)]="filter.startTime" required>
+                  <select class="form-select" name="startTime" [(ngModel)]="filter.startTime" required>
+                    <option value="" disabled>Saat seçin</option>
+                    <option value="08:00">08:00</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                    <option value="18:00">18:00</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:00">20:00</option>
+                    <option value="21:00">21:00</option>
+                    <option value="22:00">22:00</option>
+                  </select>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label text-muted small"><i class="bi bi-clock-fill"></i> Bitiş Saati</label>
-                  <input type="time" class="form-control" name="endTime" [(ngModel)]="filter.endTime" required>
+                  <select class="form-select" name="endTime" [(ngModel)]="filter.endTime" required>
+                    <option value="" disabled>Saat seçin</option>
+                    <option value="09:00">09:00</option>
+                    <option value="10:00">10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                    <option value="13:00">13:00</option>
+                    <option value="14:00">14:00</option>
+                    <option value="15:00">15:00</option>
+                    <option value="16:00">16:00</option>
+                    <option value="17:00">17:00</option>
+                    <option value="18:00">18:00</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:00">20:00</option>
+                    <option value="21:00">21:00</option>
+                    <option value="22:00">22:00</option>
+                    <option value="23:00">23:00</option>
+                  </select>
                 </div>
               </div>
               <button type="submit" class="btn btn-success w-100 text-uppercase fw-bold" [disabled]="!filterForm.form.valid">
@@ -58,13 +176,327 @@
     </div>
 
     <div *ngIf="tables.length > 0" class="mt-5">
-      <h5 class="mb-3"><i class="bi bi-table"></i> Uygun Masalar</h5>
-      <div class="d-flex flex-wrap gap-3">
-        <div *ngFor="let table of tables"
-             class="table-box"
-             [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
-             (click)="onTableSelect(table)">
-          {{ table.tableNumber }}
+      <h5 class="mb-4 text-center"><i class="bi bi-building"></i> Kütüphane Masa Düzeni</h5>
+
+      <div class="library-layout">
+        <!-- Satır 1: 4 grup (her grup 4 masa - 2x2) -->
+        <div class="block-row">
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 1, 2)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 3, 4)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 5, 6)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 7, 8)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 9, 10)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 11, 12)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 13, 14)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 15, 16)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Satır 2: 4 grup -->
+        <div class="block-row">
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 17, 18)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 19, 20)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 21, 22)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 23, 24)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 25, 26)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 27, 28)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 29, 30)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 31, 32)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="corridor-divider">
+          <span>KORİDOR</span>
+        </div>
+
+        <!-- Satır 3: 4 grup -->
+        <div class="block-row">
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 33, 34)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 35, 36)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 37, 38)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 39, 40)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 41, 42)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 43, 44)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 45, 46)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 47, 48)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Satır 4: 4 grup -->
+        <div class="block-row">
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 49, 50)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 51, 52)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 53, 54)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 55, 56)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 57, 58)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 59, 60)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="table-group-4">
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 61, 62)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+            <div class="group-row-2">
+              <div *ngFor="let table of getTablesForRow(1, 63, 64)"
+                   class="table-box"
+                   [ngClass]="{'available': isTableAvailable(table), 'occupied': !isTableAvailable(table)}"
+                   (click)="onTableSelect(table)">
+                {{ getTableLabel(table) }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,34 @@
+﻿{
+    "TestDate":  "2026-02-06 14:12:12",
+    "TestType":  "Multi-Endpoint Load Test",
+    "Configuration":  {
+                          "ConcurrentBatch":  30,
+                          "EndpointsCount":  7,
+                          "TotalRequests":  1000
+                      },
+    "TubitekCriteria":  {
+                            "AchievedSuccessRate":  100,
+                            "RequiredSuccessRate":  90,
+                            "Passed":  true
+                        },
+    "Summary":  {
+                    "TimeoutRequests":  0,
+                    "FailedRequests":  0,
+                    "TotalRequests":  1000,
+                    "NotFoundErrors":  0,
+                    "AuthErrors":  0,
+                    "ServerErrors":  0,
+                    "RequestsPerSecond":  51.6,
+                    "SuccessfulRequests":  1000,
+                    "Duration":  19.4,
+                    "SuccessRate":  100
+                },
+    "ResponseTimes":  {
+                          "Average":  278,
+                          "P50":  274,
+                          "Min":  4,
+                          "Max":  990,
+                          "P95":  534,
+                          "P99":  606
+                      }
+}

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TurnstileService", "Backend
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared.Events", "Backend\Shared.Events\Shared.Events.csproj", "{C2A704F0-16B5-458B-BF76-DDD13C3D2507}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "Backend\IntegrationTests\IntegrationTests.csproj", "{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,18 @@ Global
 		{C2A704F0-16B5-458B-BF76-DDD13C3D2507}.Release|x64.Build.0 = Release|Any CPU
 		{C2A704F0-16B5-458B-BF76-DDD13C3D2507}.Release|x86.ActiveCfg = Release|Any CPU
 		{C2A704F0-16B5-458B-BF76-DDD13C3D2507}.Release|x86.Build.0 = Release|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Debug|x64.Build.0 = Debug|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Debug|x86.Build.0 = Debug|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Release|x64.ActiveCfg = Release|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Release|x64.Build.0 = Release|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +124,7 @@ Global
 		{B4E5C863-C75F-64E3-86B0-880F15652D5D} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{DB76DC5D-9F7A-9375-C225-3651DB811CB4} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 		{C2A704F0-16B5-458B-BF76-DDD13C3D2507} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
+		{AA5E6909-8E29-4A37-B527-293EEC9CA6C1} = {1AE8ACA6-933B-BF2A-3671-3E2EAC007D16}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E61EAA98-0ECF-44A7-84CB-17637BFE3FA0}

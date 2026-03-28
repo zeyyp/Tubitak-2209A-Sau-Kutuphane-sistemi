@@ -85,37 +85,22 @@ public class PenaltyCheckService : BackgroundService
 
                 if (profile != null)
                 {
-                    profile.PenaltyPoints++;
+                    // Direkt 2 günlük ban uygula
                     reservation.PenaltyProcessed = true;
                     penaltiesApplied++;
                     studentsProcessed.Add(profile.StudentNumber);
 
+                    profile.BanUntil = DateOnly.FromDateTime(nowLocal.AddDays(2));
+                    profile.BanReason = "Rezervasyonunuza katılmadığınız için sistem 2 gün ceza uyguladı.";
+                    profile.LastNoShowProcessedAt = DateTime.UtcNow;
+                    
                     _logger.LogWarning(
-                        "Öğrenci {StudentNumber} - Rezervasyon ID {ReservationId} için ceza uygulandı. " +
-                        "Toplam ceza puanı: {PenaltyPoints}. Rezervasyon saati: {ReservationTime}",
+                        "Öğrenci {StudentNumber} - Rezervasyon ID {ReservationId} için 2 günlük ban uygulandı. " +
+                        "Ban bitiş tarihi: {BanUntil}. Rezervasyon saati: {ReservationTime}",
                         profile.StudentNumber,
                         reservation.Id,
-                        profile.PenaltyPoints,
+                        profile.BanUntil.Value.ToString("dd.MM.yyyy"),
                         reservationStart.ToString("dd.MM.yyyy HH:mm"));
-
-                    // 3 ceza puanına ulaştıysa ban uygula
-                    if (profile.PenaltyPoints >= PenaltyThreshold)
-                    {
-                        profile.PenaltyPoints = 0;
-                        profile.BanUntil = DateOnly.FromDateTime(nowLocal.AddDays(BanDurationDays));
-                        profile.BanReason = "Rezervasyonunuza katılmadığınız için sistem 7 gün ceza uyguladı.";
-                        
-                        _logger.LogWarning(
-                            "Öğrenci {StudentNumber} için 7 günlük ban uygulandı. Ban bitiş tarihi: {BanUntil}",
-                            profile.StudentNumber,
-                            profile.BanUntil.Value.ToString("dd.MM.yyyy"));
-                    }
-                    else
-                    {
-                        profile.BanReason = $"Rezervasyonunuza katılmadığınız için ceza puanı aldınız. ({profile.PenaltyPoints}/3)";
-                    }
-
-                    profile.LastNoShowProcessedAt = DateTime.UtcNow;
 
                     // RabbitMQ Event: Profil güncellendi (ceza verildi)
                     try
@@ -124,7 +109,7 @@ public class PenaltyCheckService : BackgroundService
                         {
                             StudentNumber = profile.StudentNumber,
                             StudentType = profile.StudentType,
-                            PenaltyPoints = profile.PenaltyPoints,
+                            PenaltyPoints = 0,
                             BanUntil = profile.BanUntil?.ToString("yyyy-MM-dd"),
                             BanReason = profile.BanReason,
                             UpdatedAt = DateTime.UtcNow

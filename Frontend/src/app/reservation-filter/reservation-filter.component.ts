@@ -18,6 +18,12 @@ export class ReservationFilterComponent {
     floorId: 1
   };
 
+  // Tarih kısıtlamaları: sadece bugün ve yarın
+  minDate = '';
+  maxDate = '';
+  tomorrowAccessTime = '';
+  canAccessTomorrow = false;
+
   tables: any[] = [];
   lastErrorMessage = '';
   lastErrorReason = '';
@@ -26,6 +32,11 @@ export class ReservationFilterComponent {
   isSubmitting = false;
   showConfirmationModal = false;
   selectedTable: any = null;
+
+  // Puan bazlı erişim kontrolü
+  accessCheckResult: any = null;
+  accessDenied = false;
+  checkingAccess = true;
 
   isTableAvailable(table: any): boolean {
     if (!table) {
@@ -44,10 +55,95 @@ export class ReservationFilterComponent {
   ) {}
 
   ngOnInit() {
+    // Tarih sınırlarını ayarla (bugün ve yarın)
+    this.setDateLimits();
+
     if (typeof window !== 'undefined' && !this.authService.isLoggedIn()) {
       alert('Rezervasyon yapabilmek için önce giriş yapmalısınız.');
       this.router.navigate(['/login']);
+      return;
     }
+
+    // Puan bazlı erişim kontrolü
+    this.checkAccessControl();
+  }
+
+  setDateLimits() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // YYYY-MM-DD formatı
+    this.minDate = today.toISOString().split('T')[0];
+    this.maxDate = tomorrow.toISOString().split('T')[0];
+
+    // Varsayılan olarak bugünü seç
+    this.filter.date = this.minDate;
+  }
+
+  selectDate(day: 'today' | 'tomorrow') {
+    if (day === 'today') {
+      this.filter.date = this.minDate;
+    } else if (day === 'tomorrow' && this.canAccessTomorrow) {
+      this.filter.date = this.maxDate;
+    }
+    this.cdr.detectChanges();
+  }
+
+  validateDate() {
+    // Seçilen tarih geçerli aralıkta mı kontrol et
+    if (this.filter.date < this.minDate) {
+      this.filter.date = this.minDate;
+      alert('Geçmiş tarih için rezervasyon yapamazsınız. Bugün seçildi.');
+    } else if (this.filter.date > this.maxDate) {
+      this.filter.date = this.maxDate;
+      alert('En fazla yarın için rezervasyon yapabilirsiniz. Yarın seçildi.');
+    }
+    this.cdr.detectChanges();
+  }
+
+  checkAccessControl() {
+    const studentNumber = this.authService.getCurrentUser();
+    if (!studentNumber) {
+      this.checkingAccess = false;
+      return;
+    }
+
+    // Admin kontrolü - admin her zaman erişebilir
+    if (studentNumber.toLowerCase() === 'admin') {
+      this.checkingAccess = false;
+      this.accessDenied = false;
+      return;
+    }
+
+    this.reservationService.checkAccess(studentNumber).subscribe({
+      next: (result) => {
+        this.accessCheckResult = result;
+        // Bugün için her zaman erişim açık, sadece yarın kilitli olabilir
+        this.accessDenied = false; // Artık hiçbir zaman sistemi bloke etmiyoruz
+        this.checkingAccess = false;
+
+        // Yarın için erişim saatini kaydet
+        if (result.allowedTime) {
+          this.tomorrowAccessTime = result.allowedTime;
+          // Şu anki saat erişim saatinden büyük mü kontrol et
+          const now = new Date();
+          const [hours, minutes] = result.allowedTime.split(':').map(Number);
+          const accessTime = new Date();
+          accessTime.setHours(hours, minutes, 0, 0);
+          this.canAccessTomorrow = now >= accessTime;
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erişim kontrolü hatası:', err);
+        // Hata durumunda erişime izin ver (backend çalışmıyorsa vs)
+        this.checkingAccess = false;
+        this.accessDenied = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onSearch() {
@@ -99,6 +195,24 @@ export class ReservationFilterComponent {
     this.showConfirmationModal = false;
     this.selectedTable = null;
     this.cdr.detectChanges();
+  }
+
+  getTablesForRow(floorId: number, startNum: number, endNum: number): any[] {
+    return this.tables.filter(table => {
+      const tableNum = this.extractTableNumber(table.tableNumber || table.TableNumber);
+      return tableNum >= startNum && tableNum <= endNum;
+    });
+  }
+
+  extractTableNumber(tableNumber: string): number {
+    const match = tableNumber.match(/\d+-(\d+)$/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  getTableLabel(table: any): string {
+    const tableNumber = table.tableNumber || table.TableNumber;
+    const num = this.extractTableNumber(tableNumber);
+    return num.toString();
   }
 
   confirmReservation() {

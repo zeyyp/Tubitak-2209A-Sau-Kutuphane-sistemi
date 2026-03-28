@@ -52,6 +52,7 @@ export class ProfileComponent implements OnInit {
   loadReservations() {
     this.reservationService.getStudentReservations(this.studentNumber).subscribe({
       next: (data: any) => {
+        console.log('Rezervasyonlar:', data);
         this.reservations = data;
         this.isLoadingReservations = false;
         this.cdr.detectChanges();

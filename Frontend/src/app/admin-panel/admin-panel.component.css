@@ -105,3 +105,58 @@
   width: 3rem;
   height: 3rem;
 }
+/* AI Analysis Styles */
+.ai-analysis-container {
+  padding: 10px 0;
+}
+
+.analysis-section {
+  margin-bottom: 25px;
+}
+
+.analysis-section h5 {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.issue-list, .suggestion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.issue-list li, .suggestion-list li {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #dc3545;
+  transition: all 0.2s ease;
+}
+
+.suggestion-list li {
+  border-left-color: #28a745;
+}
+
+.issue-list li:hover, .suggestion-list li:hover {
+  background: #e9ecef;
+  transform: translateX(5px);
+}
+
+.topic-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.topic-badges .badge {
+  font-size: 0.9rem;
+  padding: 8px 15px;
+  border-radius: 20px;
+}
+
+.stat-success i { color: #28a745; }
+.stat-danger i { color: #dc3545; }

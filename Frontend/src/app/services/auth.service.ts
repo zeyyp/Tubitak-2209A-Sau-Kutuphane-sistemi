@@ -1,13 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly USER_KEY = 'current_user';
+  private readonly ACCESS_TOKEN_KEY = 'access_token';
+  private readonly REFRESH_TOKEN_KEY = 'refresh_token';
+  private readonly TOKEN_EXPIRY_KEY = 'token_expiry';
   private apiUrl = 'http://localhost:5010/api/Auth';
+
+  private isRefreshing = false;
 
   constructor(private http: HttpClient) { }
 
@@ -16,6 +21,18 @@ export class AuthService {
       tap((response: any) => {
         if (response && response.studentNumber) {
           localStorage.setItem(this.USER_KEY, response.studentNumber);
+
+          // JWT Token'ları kaydet
+          if (response.accessToken) {
+            localStorage.setItem(this.ACCESS_TOKEN_KEY, response.accessToken);
+          }
+          if (response.refreshToken) {
+            localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
+          }
+          if (response.accessTokenExpiresAt) {
+            localStorage.setItem(this.TOKEN_EXPIRY_KEY, response.accessTokenExpiresAt);
+          }
+
           if (response.role) {
             localStorage.setItem('user_role', response.role);
           }
@@ -32,7 +49,19 @@ export class AuthService {
   }
 
   logout(): void {
+    // Backend'e revoke isteği gönder
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      this.http.post(`${this.apiUrl}/revoke`, { refreshToken }).subscribe({
+        error: () => {} // Hata olsa bile devam et
+      });
+    }
+
+    // Tüm token ve kullanıcı bilgilerini temizle
     localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
     localStorage.removeItem('user_role');
     localStorage.removeItem('academic_level');
   }
@@ -63,12 +92,54 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getCurrentUser();
+    return !!this.getCurrentUser() && !!this.getToken();
   }
 
-  // JWT kaldırıldığı için şu an gerçek bir token kullanılmıyor;
-  // interceptor derleme hatası vermesin diye boş bir getter bırakıyoruz.
+  // JWT Access Token'ı döndür
   getToken(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+    }
     return null;
+  }
+
+  // Refresh Token'ı döndür
+  getRefreshToken(): string | null {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    }
+    return null;
+  }
+
+  // Token süresinin dolup dolmadığını kontrol et
+  isTokenExpired(): boolean {
+    const expiry = localStorage.getItem(this.TOKEN_EXPIRY_KEY);
+    if (!expiry) return true;
+
+    const expiryDate = new Date(expiry);
+    // 1 dakika öncesinde yenile (güvenlik marjı)
+    return new Date() >= new Date(expiryDate.getTime() - 60000);
+  }
+
+  // Token yenileme
+  refreshToken(): Observable<any> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    return this.http.post(`${this.apiUrl}/refresh`, { refreshToken }).pipe(
+      tap((response: any) => {
+        if (response.accessToken) {
+          localStorage.setItem(this.ACCESS_TOKEN_KEY, response.accessToken);
+        }
+        if (response.refreshToken) {
+          localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
+        }
+        if (response.accessTokenExpiresAt) {
+          localStorage.setItem(this.TOKEN_EXPIRY_KEY, response.accessTokenExpiresAt);
+        }
+      })
+    );
   }
 }

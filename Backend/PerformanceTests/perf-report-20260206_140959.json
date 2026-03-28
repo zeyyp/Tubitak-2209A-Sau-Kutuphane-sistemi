@@ -1,0 +1,27 @@
+﻿{
+    "Configuration":  {
+                          "TargetUrl":  "http://localhost:5002/api/Reservation/Faculties",
+                          "ConcurrentBatch":  50,
+                          "TotalRequests":  1000
+                      },
+    "TubitekCriteria":  {
+                            "Passed":  true,
+                            "Achieved":  100,
+                            "Required":  90
+                        },
+    "Results":  {
+                    "FailedRequests":  0,
+                    "RequestsPerSecond":  875.2,
+                    "TotalRequests":  1000,
+                    "SuccessfulRequests":  1000,
+                    "DurationSeconds":  1.1,
+                    "ResponseTimes":  {
+                                          "Min":  13,
+                                          "Max":  193,
+                                          "P95":  190,
+                                          "Average":  48
+                                      },
+                    "SuccessRate":  100
+                },
+    "TestDate":  "2026-02-06 14:09:59"
+}

@@ -74,16 +74,92 @@
   z-index: 1050;
 }
 
+/* Kütüphane Düzeni */
+.library-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.block-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.corridor-spacer {
+  height: 50px;
+  margin: 30px 0;
+}
+
+.table-group {
+  display: inline-block;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+/* 4'lü masa grubu (2x2) */
+.table-group-4 {
+  display: inline-block;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 2px solid #e9ecef;
+}
+
+.group-row-2 {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.group-row-2:last-child {
+  margin-bottom: 0;
+}
+
+.group-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.group-row:last-child {
+  margin-bottom: 0;
+}
+
+.corridor-divider {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 40px 0;
+  position: relative;
+}
+
+.corridor-divider span {
+  background: transparent;
+  padding: 8px 20px;
+  color: #6c757d;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+}
+
 .table-box {
-  width: 70px;
-  height: 70px;
-  border-radius: 12px;
+  width: 55px;
+  height: 55px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
@@ -108,15 +184,17 @@
 
 .table-box:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
 }
 
 .table-box.available {
   background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: 2px solid #1ea668;
 }
 
 .table-box.occupied {
   background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  border: 2px solid #495057;
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -126,6 +204,40 @@
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
+/* Responsive */
+@media (max-width: 992px) {
+  .block-row {
+    gap: 30px;
+  }
+
+  .table-group {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .block-row {
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+  }
+
+  .table-box {
+    width: 60px;
+    height: 60px;
+    font-size: 1rem;
+  }
+
+  .group-row {
+    gap: 8px;
+  }
+
+  .corridor-divider {
+    height: 60px;
+    margin: 30px 0;
+  }
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -133,10 +245,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   z-index: 9999;
 }
 
@@ -145,8 +257,21 @@
   border-radius: 10px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
   overflow: hidden;
+  position: relative;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .modal-header {

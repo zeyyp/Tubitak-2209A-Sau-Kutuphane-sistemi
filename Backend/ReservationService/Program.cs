@@ -32,6 +32,32 @@ builder.Services.AddHostedService<StudentEntryEventConsumer>();
 // Otomatik ceza kontrolü servisi - Her 1 dakikada bir çalışır
 builder.Services.AddHostedService<PenaltyCheckService>();
 
+// Priority Service - Puan ve erişim kontrolü
+builder.Services.AddScoped<PriorityService>();
+
+// CORS Politikası - ngrok için geçici olarak tüm origin'lere açık
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SecurePolicy", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => true)  // Tüm origin'lere izin (ngrok için)
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
+
+// HTTPS Zorunluluğu (Production için)
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
+        options.Preload = true;
+    });
+}
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -57,6 +83,25 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred seeding the DB.");
     }
 }
+
+// Security Headers
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    await next();
+});
+
+// HTTPS Redirect (Production)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
+
+app.UseCors("SecurePolicy");
 
 app.MapControllers();
 
