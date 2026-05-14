@@ -439,21 +439,25 @@ export class FloorComponent implements OnInit, OnDestroy {
   // ── Event handlers ────────────────────────────────────────
   onSeatClick(seat: SeatData): void {
     if (seat.status === "reserved") return;
-    const prevId   = this.selectedSeatId;
-    const isToggle = prevId === seat.id;
-    this.selectedSeatId = isToggle ? null : seat.id;
-    this.setActiveTables(this.activeTables.map(t => {
-      const needsUpdate = t.seats.some(s => s.id === seat.id || s.id === prevId);
-      if (!needsUpdate) return t;
-      return {
+    // Clear any previously selected seat first
+    if (this.selectedSeatId && this.selectedSeatId !== seat.id) {
+      const prevId = this.selectedSeatId;
+      this.selectedSeatId = null;
+      this.setActiveTables(this.activeTables.map(t => ({
         ...t,
-        seats: t.seats.map(s => {
-          if (s.id === seat.id) return { ...s, status: (isToggle ? "available" : "selected") as SeatStatus };
-          if (s.id === prevId)  return { ...s, status: "available" as SeatStatus };
-          return s;
-        }),
-      };
+        seats: t.seats.map(s => s.id === prevId ? { ...s, status: 'available' as SeatStatus } : s),
+      })));
+    }
+    // Select the seat for visual feedback
+    this.selectedSeatId = seat.id;
+    this.setActiveTables(this.activeTables.map(t => {
+      if (!t.seats.some(s => s.id === seat.id)) return t;
+      return { ...t, seats: t.seats.map(s => s.id === seat.id ? { ...s, status: 'selected' as SeatStatus } : s) };
     }));
+    // Directly open the confirmation modal
+    this.pendingSeatId = seat.id;
+    this.showConfirmModal = true;
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
@@ -472,7 +476,16 @@ export class FloorComponent implements OnInit, OnDestroy {
 
   cancelConfirmModal(): void {
     this.showConfirmModal = false;
+    // Reset seat back to available
+    if (this.pendingSeatId) {
+      const id = this.pendingSeatId;
+      this.setActiveTables(this.activeTables.map(t => ({
+        ...t,
+        seats: t.seats.map(s => s.id === id ? { ...s, status: 'available' as SeatStatus } : s),
+      })));
+    }
     this.pendingSeatId = null;
+    this.selectedSeatId = null;
     this.cdr.detectChanges();
   }
 

@@ -102,10 +102,10 @@
           </div>
         </div>
 
-        <!-- Duration hint -->
-        <div class="rf-duration" *ngIf="durationHours > 0">
-          <i class="bi bi-hourglass-split"></i>
-          {{ durationHours }} saat rezervasyon
+        <!-- Static max duration notice -->
+        <div class="rf-max-duration">
+          <i class="bi bi-clock-history"></i>
+          Maksimum rezervasyon süresi 4 saattir.
         </div>
 
         <!-- Access info banner -->
@@ -141,22 +141,14 @@
 
       <!-- Legend -->
       <div class="rf-legend">
-        <div class="rf-legend-row"><span class="rf-dot rf-dot--available"></span> Musait koltuk</div>
+        <div class="rf-legend-row"><span class="rf-dot rf-dot--available"></span> Boş koltuk</div>
         <div class="rf-legend-row"><span class="rf-dot rf-dot--reserved"></span> Rezerveli koltuk</div>
-        <div class="rf-legend-row"><span class="rf-dot rf-dot--selected"></span> Secili koltuk</div>
+        <div class="rf-legend-row"><span class="rf-dot rf-dot--selected"></span> Seçili koltuk</div>
       </div>
 
     </div>
 
-    <!-- Selected seat confirm (inside sidebar) -->
-    <div class="rf-selection-card" *ngIf="selectedSeat">
-      <div class="rf-selection-card__label">Secili Koltuk</div>
-      <div class="rf-selection-card__seat">{{ selectedSeat.label }}</div>
-      <button class="rf-selection-confirm" (click)="confirmReservation()">
-        <i class="bi bi-check-lg"></i> Rezervasyonu Tamamla
-      </button>
-      <button class="rf-selection-cancel" (click)="cancelSelection()">Vazgec</button>
-    </div>
+
 
   </aside>
 
@@ -176,11 +168,11 @@
 
     <div class="map-topbar">
       <div class="map-topbar__left">
-        <h1 class="map-topbar__title">Koltuk Haritasi</h1>
-        <span class="map-topbar__sub">
+        <span class="map-topbar__info">
           {{ selectedDate }}
-          <span *ngIf="selectedStartTime && selectedEndTime"> &middot; {{ selectedStartTime }} - {{ selectedEndTime }}</span>
+          <span *ngIf="selectedStartTime && selectedEndTime"> &middot; {{ selectedStartTime }} – {{ selectedEndTime }}</span>
           <span> &middot; {{ selectedBlock === 'A' ? 'A Blok' : 'B Blok' }}</span>
+          <span> &middot; {{ activeFloor }}. Kat</span>
         </span>
       </div>
     </div>
@@ -289,17 +281,7 @@
 
   </main>
 
-  <!-- Floating confirm FAB -->
-  <div class="fab-container" *ngIf="selectedSeat">
-    <div class="fab-card">
-      <div class="fab-card__info">
-        <div class="fab-card__label">Secili Koltuk</div>
-        <div class="fab-card__seat">{{ selectedSeat.label }}</div>
-      </div>
-      <button class="fab-card__confirm" (click)="confirmReservation()">Rezervasyonu Tamamla</button>
-      <button class="fab-card__cancel" (click)="cancelSelection()">x</button>
-    </div>
-  </div>
+
 
 </div>
 
@@ -324,6 +306,10 @@
         <span class="confirm-modal__key">Saat</span>
         <span class="confirm-modal__val">{{ selectedStartTime }} – {{ selectedEndTime }}</span>
       </div>
+    </div>
+    <div class="confirm-modal__warning">
+      <i class="bi bi-exclamation-circle"></i>
+      <span><strong>Önemli:</strong> Rezervasyon saatinizden sonraki 15 dakika içinde turnike girişi yapmamanız durumunda rezervasyonunuz otomatik olarak iptal edilir.</span>
     </div>
     <div class="confirm-modal__actions">
       <button class="confirm-modal__btn confirm-modal__btn--confirm" (click)="executeReservation()">
