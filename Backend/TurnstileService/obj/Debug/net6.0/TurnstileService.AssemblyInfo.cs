@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TurnstileService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5dbac58cc7547b31cf2dd0c0dfa2ea922eb34eec")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9604e6e56f256b0444b32d68afd67ea4e82aa25c")]
 [assembly: System.Reflection.AssemblyProductAttribute("TurnstileService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TurnstileService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

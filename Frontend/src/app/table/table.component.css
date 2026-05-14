@@ -9,116 +9,137 @@
 
 /* ─── Single desk seat (counter / wall) ──────────────────────── */
 .seat--single {
-  display: block;
-  width: 18px;
-  height: 9px;
-  border-radius: 2px;
-  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
   cursor: pointer;
   outline: none;
-  transition: background 0.10s, transform 0.08s;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
 }
 
-.seat--single.seat--available       { background: #2D4059; }
-.seat--single.seat--available:hover { background: #1A2332; transform: scaleY(1.15); }
-.seat--single.seat--reserved        { background: #94A3B8; cursor: not-allowed; opacity: 0.85; }
-.seat--single.seat--selected        { background: #2563EB; }
+.seat--single.seat--available       { background: #ffffff; border-color: #e2e8f0; }
+.seat--single.seat--available:hover { border-color: #93c5fd; background: #f0f9ff; transform: scale(1.06); }
+.seat--single.seat--reserved        { background: #e8edf4; border-color: #cbd5e1; cursor: not-allowed; }
+.seat--single.seat--selected        { background: #dbeafe; border-color: #3b82f6; }
 
 /* ─── Table card ──────────────────────────────────────────────── */
 .table-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
-  border: 1px solid #DDD4C4;
-  border-radius: 8px;
-  background: #F5EFE4;
-  overflow: hidden;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+  padding: 10px;
+  margin-top: 14px;
 }
 
 .table-card--wide {
   width: 100%;
 }
 
-/* Blue hairline ring when a seat is selected */
+/* Blue highlight when a seat is selected */
 .table-card--has-selected {
-  border-color: #93C5FD;
-  box-shadow: 0 0 0 1px #BFDBFE;
+  border-color: #93c5fd;
+  background: #f8fbff;
 }
 
 .table-card--full {
-  opacity: 0.50;
+  opacity: 0.55;
+}
+
+/* ─── Label badge ─────────────────────────────────────────────── */
+.table-label-badge {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 3px 12px;
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  letter-spacing: 0.02em;
 }
 
 /* ─── Seat rows ────────────────────────────────────────────────── */
 .seat-row {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 5px 5px;
+  gap: 5px;
+  padding: 0;
 }
 
-.seat-row--top    { border-bottom: 1px solid #DDD4C4; }
-.seat-row--bottom { border-top:    1px solid #DDD4C4; }
+.seat-row--top    { margin-bottom: 6px; }
+.seat-row--bottom { margin-top: 0; }
 
-/* ─── Chair seat button (top-down architectural icon)
-   Two-tone gradient: narrow dark strip = backrest,
-   wider lighter body = seat cushion.
-   Top row  → backrest faces UP   (strip at top)
-   Bottom row → backrest faces DOWN (strip at bottom)
-   ──────────────────────────────────────────────────────────────── */
+/* ─── Chair seat button ─────────────────────────────────────────── */
 .seat {
   flex: 1;
-  height: 14px;
+  height: 42px;
   min-width: 0;
-  border: none;
-  border-radius: 3px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
   cursor: pointer;
   outline: none;
-  transition: opacity 0.10s, transform 0.08s;
-}
-
-.seat:not(:disabled):hover { transform: scaleY(1.12); opacity: 0.85; }
-
-/* Top row — backrest strip at top ▲ */
-.seat--top.seat--available {
-  background: linear-gradient(to bottom, #1A2332 28%, #2D4059 28%);
-}
-.seat--top.seat--reserved {
-  background: linear-gradient(to bottom, #7B8FA1 30%, #94A3B8 30%);
-  cursor: not-allowed;
-  opacity: 0.85;
-}
-.seat--top.seat--selected {
-  background: linear-gradient(to bottom, #1D4ED8 28%, #3B82F6 28%);
-}
-
-/* Bottom row — backrest strip at bottom ▼ */
-.seat--bottom.seat--available {
-  background: linear-gradient(to top, #1A2332 28%, #2D4059 28%);
-}
-.seat--bottom.seat--reserved {
-  background: linear-gradient(to top, #7B8FA1 30%, #94A3B8 30%);
-  cursor: not-allowed;
-  opacity: 0.60;
-}
-.seat--bottom.seat--selected {
-  background: linear-gradient(to top, #1D4ED8 28%, #3B82F6 28%);
-}
-
-/* ─── Table surface (center label) ───────────────────────────── */
-.table-surface {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 6px;
-  background: #EDE5D7;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
 }
 
-.table-id {
-  font-size: 0.50rem;
+.seat:not(:disabled):hover { transform: scale(1.04); }
+
+/* Available */
+.seat--top.seat--available,
+.seat--bottom.seat--available {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+.seat--top.seat--available:hover,
+.seat--bottom.seat--available:hover {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}
+
+/* Reserved */
+.seat--top.seat--reserved,
+.seat--bottom.seat--reserved {
+  background: #e8edf4;
+  border-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* Selected */
+.seat--top.seat--selected,
+.seat--bottom.seat--selected {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+/* ─── Seat content ────────────────────────────────────────────── */
+.seat-num {
+  font-size: 0.80rem;
   font-weight: 500;
-  color: #A89880;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
+  color: #64748b;
+  pointer-events: none;
+  line-height: 1;
+}
+.seat--selected .seat-num { color: #1d4ed8; font-weight: 600; }
+
+.seat-lock {
+  font-size: 0.75rem;
+  color: #94a3b8;
   pointer-events: none;
 }

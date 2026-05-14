@@ -207,6 +207,8 @@
                   [disabled]="s.status === 'reserved'"
                   [title]="s.label"
                   (click)="onSeatClick(s)">
+                  <i *ngIf="s.status === 'reserved'" class="bi bi-lock-fill seat-btn-lock"></i>
+                  <span *ngIf="s.status !== 'reserved'" class="seat-btn-num">{{ seatNum(s.label) }}</span>
                 </button>
               </div>
             </div>
@@ -248,6 +250,8 @@
                 [disabled]="s.status === 'reserved'"
                 [title]="s.label"
                 (click)="onSeatClick(s)">
+                <i *ngIf="s.status === 'reserved'" class="bi bi-lock-fill seat-btn-lock"></i>
+                <span *ngIf="s.status !== 'reserved'" class="seat-btn-num">{{ seatNum(s.label) }}</span>
               </button>
             </div>
             <div class="wall-desk-shelf"><span class="wall-desk-label">Duvar Kenari</span></div>
@@ -269,6 +273,8 @@
                 [disabled]="s.status === 'reserved'"
                 [title]="s.label"
                 (click)="onSeatClick(s)">
+                <i *ngIf="s.status === 'reserved'" class="bi bi-lock-fill seat-btn-lock"></i>
+                <span *ngIf="s.status !== 'reserved'" class="seat-btn-num">{{ seatNum(s.label) }}</span>
               </button>
             </div>
             <div class="wall-desk-shelf"><span class="wall-desk-label">Duvar Kenari</span></div>

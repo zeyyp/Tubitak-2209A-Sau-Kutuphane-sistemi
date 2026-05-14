@@ -64,6 +64,13 @@ export class TableComponent {
     return this.table?.seats.every(s => s.status === 'reserved') ?? false;
   }
 
+  /** Extract display number from seat label e.g. "T1-3" → "3", "W1" → "1" */
+  getSeatNumber(label: string): string {
+    const idx = label.lastIndexOf('-');
+    if (idx >= 0) return label.slice(idx + 1);
+    return label.replace(/\D/g, '') || label;
+  }
+
   onSeatClick(seat: SeatData): void {
     if (seat.status === 'reserved') return;
     this.seatClick.emit(seat);

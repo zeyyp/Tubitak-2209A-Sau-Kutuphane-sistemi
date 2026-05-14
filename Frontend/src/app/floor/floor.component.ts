@@ -419,6 +419,13 @@ export class FloorComponent implements OnInit, OnDestroy {
   get leftWallDeskSeats():  SeatData[]   { return this.activeTables.filter(t => t.zone === "leftWallDesk").flatMap(t => t.seats); }
   get rightWallDeskSeats(): SeatData[]   { return this.activeTables.filter(t => t.zone === "rightWallDesk").flatMap(t => t.seats); }
 
+  /** Extract display number from seat label e.g. "BL-1" → "1", "W3" → "3" */
+  seatNum(label: string): string {
+    const idx = label.lastIndexOf('-');
+    if (idx >= 0) return label.slice(idx + 1);
+    return label.replace(/\D/g, '') || label;
+  }
+
   // ── Stats ─────────────────────────────────────────────────
   get allSeats(): SeatData[]    { return this.activeTables.flatMap(t => t.seats); }
   get totalSeats(): number      { return this.allSeats.length; }

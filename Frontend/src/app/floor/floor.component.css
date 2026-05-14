@@ -498,9 +498,9 @@
 .counter-shelf::before { left: 10px; }
 .counter-shelf::after  { right: 10px; }
 .counter-label { font-size: 0.46rem; font-weight: 400; color: #A89880; letter-spacing: 0.14em; }
-.counter-seats { display: flex; gap: 3px; justify-content: space-between; }
+.counter-seats { display: flex; gap: 5px; flex-wrap: wrap; }
 
-.tables-area { display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+.tables-area { display: flex; flex-direction: column; gap: 24px; padding: 16px 0 16px; }
 .table-row {
   display: flex;
   justify-content: space-between;
@@ -537,7 +537,7 @@
 }
 .wall-desk--left  { border-right: 1px solid #dee2e6; border-radius: 0 0 0 12px; }
 .wall-desk--right { border-left:  1px solid #dee2e6; border-radius: 0 0 12px 0; }
-.wall-desk-seats  { display: flex; gap: 3px; justify-content: space-between; }
+.wall-desk-seats  { display: flex; gap: 5px; flex-wrap: wrap; }
 
 .wall-desk-shelf {
   position: relative;
@@ -570,15 +570,44 @@
 .entrance-label { font-size: 0.50rem; font-weight: 400; color: #ced4da; letter-spacing: 0.10em; }
 
 .seat-btn {
-  display: block; width: 18px; height: 18px;
-  border-radius: 2px; border: none; cursor: pointer; outline: none;
-  flex-shrink: 0; transition: opacity 0.10s, transform 0.08s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
+  font-family: inherit;
+  padding: 0;
 }
-.seat-btn--counter { width: auto; flex: 1; height: 8px; min-width: 0; border-radius: 2px; }
-.seat-btn--available       { background: #1E3A5F; }
-.seat-btn--available:hover { background: #0d6efd; transform: scaleY(1.15); }
-.seat-btn--reserved        { background: #94A3B8; cursor: not-allowed; opacity: 0.85; }
-.seat-btn--selected        { background: #0d6efd; }
+.seat-btn--counter {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+.seat-btn--available       { background: #ffffff; border-color: #e2e8f0; }
+.seat-btn--available:hover { background: #f0f9ff; border-color: #93c5fd; transform: scale(1.06); }
+.seat-btn--reserved        { background: #e8edf4; border-color: #cbd5e1; cursor: not-allowed; }
+.seat-btn--selected        { background: #dbeafe; border-color: #3b82f6; }
+
+.seat-btn-num {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #64748b;
+  pointer-events: none;
+  line-height: 1;
+}
+.seat-btn--selected .seat-btn-num { color: #1d4ed8; font-weight: 600; }
+.seat-btn-lock {
+  font-size: 0.70rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
 
 /* ═══════════════════════════════════════════════════════════════
    FLOATING FAB

@@ -8,10 +8,13 @@
     [disabled]="table.seats[0].status === 'reserved'"
     [attr.aria-label]="'Koltuk ' + table.seats[0].label"
     (click)="onSeatClick(table.seats[0])"
-  ></button>
+  >
+    <i *ngIf="table.seats[0].status === 'reserved'" class="bi bi-lock-fill seat-lock"></i>
+    <span *ngIf="table.seats[0].status !== 'reserved'" class="seat-num">{{ getSeatNumber(table.seats[0].label) }}</span>
+  </button>
 </ng-container>
 
-<!-- ── Standard (2+2) or Wide (4+4) table ─────────────────────────────── -->
+<!-- ── Standard (2+2) or Wide (5+5) table ─────────────────────────────── -->
 <div
   *ngIf="variant !== 'single'"
   class="table-card"
@@ -20,6 +23,9 @@
   [class.table-card--full]="fullyReserved"
   [attr.aria-label]="'Masa ' + (table.label ?? table.id)"
 >
+  <!-- Label badge -->
+  <div class="table-label-badge">Masa {{ table.label ?? ('M' + table.id) }}</div>
+
   <!-- Top seats row -->
   <div class="seat-row seat-row--top">
     <button
@@ -31,12 +37,10 @@
       [disabled]="seat.status === 'reserved'"
       [attr.aria-label]="seat.label"
       (click)="onSeatClick(seat)"
-    ></button>
-  </div>
-
-  <!-- Table surface — passive label only -->
-  <div class="table-surface">
-    <span class="table-id">{{ table.label ?? ('M' + table.id) }}</span>
+    >
+      <i *ngIf="seat.status === 'reserved'" class="bi bi-lock-fill seat-lock"></i>
+      <span *ngIf="seat.status !== 'reserved'" class="seat-num">{{ getSeatNumber(seat.label) }}</span>
+    </button>
   </div>
 
   <!-- Bottom seats row -->
@@ -50,6 +54,9 @@
       [disabled]="seat.status === 'reserved'"
       [attr.aria-label]="seat.label"
       (click)="onSeatClick(seat)"
-    ></button>
+    >
+      <i *ngIf="seat.status === 'reserved'" class="bi bi-lock-fill seat-lock"></i>
+      <span *ngIf="seat.status !== 'reserved'" class="seat-num">{{ getSeatNumber(seat.label) }}</span>
+    </button>
   </div>
 </div>
