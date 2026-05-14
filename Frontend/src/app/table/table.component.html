@@ -1,0 +1,55 @@
+<!-- ── Single desk (wall/counter seat — no table surface) ──────────────── -->
+<ng-container *ngIf="variant === 'single'">
+  <button
+    class="seat seat--single"
+    [class.seat--available]="table.seats[0].status === 'available'"
+    [class.seat--reserved]="table.seats[0].status === 'reserved'"
+    [class.seat--selected]="table.seats[0].status === 'selected'"
+    [disabled]="table.seats[0].status === 'reserved'"
+    [attr.aria-label]="'Koltuk ' + table.seats[0].label"
+    (click)="onSeatClick(table.seats[0])"
+  ></button>
+</ng-container>
+
+<!-- ── Standard (2+2) or Wide (4+4) table ─────────────────────────────── -->
+<div
+  *ngIf="variant !== 'single'"
+  class="table-card"
+  [class.table-card--wide]="variant === 'wide'"
+  [class.table-card--has-selected]="hasSelectedSeat"
+  [class.table-card--full]="fullyReserved"
+  [attr.aria-label]="'Masa ' + (table.label ?? table.id)"
+>
+  <!-- Top seats row -->
+  <div class="seat-row seat-row--top">
+    <button
+      *ngFor="let seat of topSeats"
+      class="seat seat--top"
+      [class.seat--available]="seat.status === 'available'"
+      [class.seat--reserved]="seat.status === 'reserved'"
+      [class.seat--selected]="seat.status === 'selected'"
+      [disabled]="seat.status === 'reserved'"
+      [attr.aria-label]="seat.label"
+      (click)="onSeatClick(seat)"
+    ></button>
+  </div>
+
+  <!-- Table surface — passive label only -->
+  <div class="table-surface">
+    <span class="table-id">{{ table.label ?? ('M' + table.id) }}</span>
+  </div>
+
+  <!-- Bottom seats row -->
+  <div class="seat-row seat-row--bottom">
+    <button
+      *ngFor="let seat of bottomSeats"
+      class="seat seat--bottom"
+      [class.seat--available]="seat.status === 'available'"
+      [class.seat--reserved]="seat.status === 'reserved'"
+      [class.seat--selected]="seat.status === 'selected'"
+      [disabled]="seat.status === 'reserved'"
+      [attr.aria-label]="seat.label"
+      (click)="onSeatClick(seat)"
+    ></button>
+  </div>
+</div>

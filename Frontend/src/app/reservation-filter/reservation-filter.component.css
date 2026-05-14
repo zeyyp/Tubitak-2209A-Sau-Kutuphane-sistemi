@@ -204,6 +204,30 @@
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
+/* Kat 3: Bireysel Çalışma Düzeni */
+.individual-study-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.individual-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.individual-row .table-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .block-row {
@@ -292,5 +316,232 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* Minimal Library Layout Styles */
+.library-layout-minimal {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 1000px;
+  margin: 0 auto 40px auto; /* Add bottom margin for spacing between blocks */
+}
+
+.layout-container {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+/* Bookshelves */
+.bookshelves {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  min-width: 120px;
+}
+
+.bookshelf-column {
+  width: 40px;
+  height: 80px;
+  background: linear-gradient(135deg, #f4e04d 0%, #edd83d 100%);
+  border: 2px solid #d4c02d;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.bookshelf-label {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-top: 10px;
+  transform: rotate(-90deg);
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  white-space: nowrap;
+}
+
+/* Study Area */
+.study-area {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.area-title {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+/* Seat Rows */
+.seat-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 12px;
+  justify-content: center;
+}
+
+.seat-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Seat Boxes - Minimal Design */
+.seat-box {
+  width: 45px;
+  height: 45px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.seat-box.available {
+  background: #10b981;
+  border-color: #059669;
+}
+
+.seat-box.available:hover {
+  background: #059669;
+  transform: scale(1.08);
+}
+
+.seat-box.occupied {
+  background: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #9ca3af;
+}
+
+/* Corridor Label */
+.corridor-label {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin: 25px 0 15px 0;
+  padding: 8px;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+/* Entrance Marker */
+.entrance-marker {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.entrance-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.entrance-icon i {
+  font-size: 1.2rem;
+}
+
+/* Generic Grid for floors 1 and 2 */
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 10px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.seat-box-generic {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seat-box-generic.available {
+  background: #10b981;
+  border: 1px solid #059669;
+}
+
+.seat-box-generic.available:hover {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+.seat-box-generic.occupied {
+  background: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+  border: 1px solid #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .bookshelves {
+    flex-direction: row;
+    min-width: auto;
+  }
+
+  .bookshelf-column {
+    width: 80px;
+    height: 40px;
+  }
+
+  .bookshelf-label {
+    transform: none;
+    position: static;
+    margin-top: 10px;
+  }
+
+  .seat-row {
+    gap: 10px;
+  }
+
+  .seat-box {
+    width: 40px;
+    height: 40px;
+    font-size: 0.75rem;
+  }
+
+  .library-layout-minimal {
+    padding: 15px;
+  }
 }
 

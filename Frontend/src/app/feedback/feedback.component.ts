@@ -113,7 +113,8 @@ export class FeedbackComponent {
       },
       error: (err) => {
         console.error(err);
-        alert('Bir hata oluştu.');
+        const msg = err?.error?.message ?? err?.error ?? 'Bir hata oluştu. Lütfen tekrar deneyin.';
+        alert(typeof msg === 'string' ? msg : 'Bir hata oluştu. Lütfen tekrar deneyin.');
         this.isSubmitting = false;
         this.cdr.detectChanges();
       }

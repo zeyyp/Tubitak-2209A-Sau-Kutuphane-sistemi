@@ -14,14 +14,14 @@ export class ReservationService {
   constructor(private http: HttpClient) { }
 
 
-  getTables(date: string, startTime: string, endTime: string, floorId: number): Observable<any[]> {
+  getTables(date: string, startTime: string, endTime: string, floorId: number): Observable<any> {
   const params = new HttpParams()
     .set('date', date)
     .set('start', startTime)
     .set('end', endTime)
     .set('floorId', floorId.toString());
 
-  return this.http.get<any[]>(`${this.apiUrl}/Tables`, { params });
+  return this.http.get<any>(`${this.apiUrl}/Tables`, { params });
 }
 
   createReservation(reservation: any): Observable<any> {
@@ -42,6 +42,10 @@ export class ReservationService {
 
   getAllReservations(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/All`);
+  }
+
+  getStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/Stats`);
   }
 
   cancelReservation(id: number): Observable<any> {

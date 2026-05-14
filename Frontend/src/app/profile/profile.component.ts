@@ -88,8 +88,16 @@ export class ProfileComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err: any) => {
-        console.error(err);
-        this.profileError = 'Ceza bilgisi yüklenirken bir hata oluştu.';
+        console.error('Penalty info error:', err);
+        if (err?.status === 401) {
+          this.profileError = 'Oturum süreniz dolmuş. Lütfen yeniden giriş yapın.';
+        } else if (err?.status === 403) {
+          this.profileError = 'Bu profile erişim yetkiniz yok.';
+        } else if (err?.status === 0) {
+          this.profileError = 'Sunucuya bağlanılamadı. Servisin çalıştığından emin olun.';
+        } else {
+          this.profileError = err?.error?.message ?? 'Ceza bilgisi yüklenirken bir hata oluştu.';
+        }
         this.isLoadingProfile = false;
         this.cdr.detectChanges();
       }

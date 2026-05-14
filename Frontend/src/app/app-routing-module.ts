@@ -13,6 +13,7 @@ import { FaqComponent } from './faq/faq.component';
 
 import { AdminPanelComponent } from './admin-panel/admin-panel.component';
 import { AdminGuard } from './guards/admin.guard';
+import { FloorComponent } from './floor/floor.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -25,7 +26,8 @@ const routes: Routes = [
   { path: 'contact', component: ContactComponent },
   { path: 'about', component: AboutComponent },
   { path: 'faq', component: FaqComponent },
-  { path: 'admin', component: AdminPanelComponent, canActivate: [AdminGuard] }
+  { path: 'admin', component: AdminPanelComponent, canActivate: [AdminGuard] },
+  { path: 'floor', component: FloorComponent }
 ];
 
 @NgModule({

@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using TurnstileService.Data;
 using TurnstileService.Models;
 using TurnstileService.Services;
 using Shared.Events;
@@ -6,7 +8,12 @@ using Shared.Events;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<TurnstileOptions>(builder.Configuration.GetSection("Turnstile"));
-builder.Services.AddSingleton<ITurnstileEntryLog, InMemoryTurnstileEntryLog>();
+
+// PostgreSQL — kalıcı turnike log deposu
+builder.Services.AddDbContext<TurnstileDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddSingleton<ITurnstileEntryLog, PostgresTurnstileEntryLog>();
+
 builder.Services.AddSingleton<TurnstileAuthProvider>();
 
 // RabbitMQ Publisher
@@ -39,12 +46,17 @@ builder.Services.AddHttpClient("IdentityAuth", (serviceProvider, client) =>
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
-// CORS Politikası - ngrok için geçici olarak tüm origin'lere açık
+// CORS Politikası — izin verilen origin'ler appsettings.json üzerinden yapılandırılır
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("SecurePolicy", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true)  // Tüm origin'lere izin (ngrok için)
+        var allowedOrigins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>()
+            ?? new[] { "http://localhost:4200" };
+
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -67,6 +79,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Turnike log tablosunu oluştur
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TurnstileDbContext>();
+    db.Database.EnsureCreated();
+}
 
 // Security Headers
 app.Use(async (context, next) =>

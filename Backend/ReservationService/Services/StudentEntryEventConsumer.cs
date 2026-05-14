@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using ReservationService.Data;
 using Shared.Events;
 
 namespace ReservationService.Services;
@@ -6,14 +8,17 @@ public class StudentEntryEventConsumer : BackgroundService
 {
     private readonly ILogger<StudentEntryEventConsumer> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IServiceProvider _serviceProvider;
     private RabbitMQConsumer? _consumer;
 
     public StudentEntryEventConsumer(
         ILogger<StudentEntryEventConsumer> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
         _configuration = configuration;
+        _serviceProvider = serviceProvider;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -46,8 +51,49 @@ public class StudentEntryEventConsumer : BackgroundService
             eventData.TurnstileId
         );
 
-        // Burada gerekirse rezervasyon durumunu güncelleyebiliriz
-        // Örneğin: IsAttended = true yapılabilir
+        // Rezervasyon IsAttended = true olarak işaretle (ceza sisteminin yanlış çalışmasını engeller)
+        try
+        {
+            MarkReservationAttendedAsync(eventData).GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "IsAttended güncellenirken hata oluştu. StudentNumber: {StudentNumber}", eventData.StudentNumber);
+        }
+    }
+
+    private async Task MarkReservationAttendedAsync(StudentEnteredEvent evt)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ReservationDbContext>();
+
+        var entryTime = evt.EntryTime.ToLocalTime();
+        var today = DateOnly.FromDateTime(entryTime);
+        var nowTime = TimeOnly.FromDateTime(entryTime);
+
+        // Öğrencinin bugünkü aktif rezervasyonunu bul (15 dakika tolerans ile)
+        var reservation = await context.Reservations
+            .Where(r => r.StudentNumber == evt.StudentNumber
+                     && r.ReservationDate == today
+                     && r.StartTime.AddMinutes(-10) <= nowTime
+                     && r.EndTime >= nowTime
+                     && !r.IsAttended)
+            .FirstOrDefaultAsync();
+
+        if (reservation != null)
+        {
+            reservation.IsAttended = true;
+            await context.SaveChangesAsync();
+            _logger.LogInformation(
+                "Reservation {ReservationId} marked as attended for student {StudentNumber}",
+                reservation.Id, evt.StudentNumber);
+        }
+        else
+        {
+            _logger.LogWarning(
+                "No active reservation found for student {StudentNumber} at entry time {EntryTime}",
+                evt.StudentNumber, entryTime);
+        }
     }
 
     public override void Dispose()

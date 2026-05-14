@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReservationService.Data;
@@ -20,7 +21,7 @@ namespace ReservationService.Controllers
         private readonly RabbitMQPublisher _publisher;
         private readonly PriorityService _priorityService;
 
-        private const int EarlyToleranceMinutes = 5;  // Başlangıçtan 5dk önce giriş yapılabilir
+        private const int EarlyToleranceMinutes = 10; // Başlangıçtan 10dk önce giriş yapılabilir
         private const int EntryGracePeriodMinutes = 15; // Başlangıçtan 15dk sonrasına kadar giriş yapılabilir, sonra ceza
         private const int PenaltyThreshold = 3;
         private const int BanDurationDays = 7;
@@ -71,16 +72,29 @@ namespace ReservationService.Controllers
 
         private string? GetCurrentStudentNumber()
         {
-            // JWT devre dışıyken claim olmayabilir; eski davranışa yakın kalmak için
-            // varsa claim'i kullan, yoksa null döndür.
-            return User.FindFirst("studentNumber")?.Value;
+            return User.FindFirst("studentNumber")?.Value
+                ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         }
 
-        // Geçici olarak tüm istekleri admin / service gibi kabul ediyoruz
-        // ki JWT zorunluluğu kalktığında eski UI akışı çalışsın.
-        private bool IsAdmin => true;
+        private bool IsAdmin
+        {
+            get
+            {
+                var role = User.FindFirst("role")?.Value
+                        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                return role == "admin";
+            }
+        }
 
-        private bool IsService => true;
+        private bool IsService
+        {
+            get
+            {
+                var role = User.FindFirst("role")?.Value
+                        ?? User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                return role == "service" || role == "admin";
+            }
+        }
 
         private record StudentTypeRule(int Priority, int MaxAdvanceDays, int MaxActiveReservations);
 
@@ -111,24 +125,39 @@ namespace ReservationService.Controllers
 
             foreach (var table in tables)
             {
-                // Check if table is occupied in the requested time slot
-                var isOccupied = await _context.Reservations.AnyAsync(r => 
-                    r.TableId == table.Id && 
-                    r.ReservationDate == rDate &&
-                    ((r.StartTime < rEnd && r.EndTime > rStart))); // Overlap logic
+                // Return which individual seat indices are occupied in the requested time slot
+                var occupiedSeats = await _context.Reservations
+                    .Where(r =>
+                        r.TableId == table.Id &&
+                        r.ReservationDate == rDate &&
+                        (r.StartTime < rEnd && r.EndTime > rStart))
+                    .Select(r => r.SeatIndex)
+                    .ToListAsync();
 
                 result.Add(new { 
                     table.Id, 
                     table.TableNumber, 
                     table.FloorId,
-                    IsAvailable = !isOccupied
+                    OccupiedSeats = occupiedSeats
                 });
             }
 
-            return Ok(result);
+            // Find W/BL/BR (non-DB-table) seat IDs that are occupied in this time slot
+            var dbTableIds = tables.Select(t => t.Id).ToHashSet();
+            var occupiedNonTableIds = await _context.Reservations
+                .Where(r =>
+                    r.ReservationDate == rDate &&
+                    r.StartTime < rEnd && r.EndTime > rStart &&
+                    !dbTableIds.Contains(r.TableId))
+                .Select(r => r.TableId)
+                .Distinct()
+                .ToListAsync();
+
+            return Ok(new { Tables = result, OccupiedNonTableIds = occupiedNonTableIds });
         }
 
         [HttpPost("Create")]
+        [Authorize]
         public async Task<IActionResult> CreateReservation([FromBody] ReservationRequest request)
         {
             var currentStudentNumber = GetCurrentStudentNumber();
@@ -171,27 +200,7 @@ namespace ReservationService.Controllers
             var profile = await GetOrCreateStudentProfileAsync(request.StudentNumber, request.StudentType);
             await ApplyNoShowPenaltiesAsync(profile);
 
-            // ===== PUAN BAZLI ERİŞİM KONTROLÜ =====
-            // Admin kullanıcıları kontrol dışında tut
-            if (!IsAdmin || !request.StudentNumber.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase))
-            {
-                var accessCheck = await _priorityService.CheckAccessAsync(request.StudentNumber);
-                if (!accessCheck.CanAccess)
-                {
-                    _logger.LogWarning(
-                        "Access denied for {StudentNumber}. Score: {Score}, AllowedTime: {AllowedTime}, CurrentTime: {CurrentTime}",
-                        request.StudentNumber, accessCheck.UserScore, accessCheck.AllowedTime, accessCheck.CurrentTime
-                    );
-                    return BadRequest(new
-                    {
-                        message = $"Rezervasyon sistemi sizin için henüz açılmadı. Puanınız: {accessCheck.UserScore}, Erişim saatiniz: {accessCheck.AllowedTime:hh\\:mm}",
-                        userScore = accessCheck.UserScore,
-                        allowedTime = accessCheck.AllowedTime.ToString(@"hh\:mm"),
-                        remainingMinutes = accessCheck.RemainingMinutes
-                    });
-                }
-            }
-            // ===== PUAN BAZLI ERİŞİM KONTROLÜ SONU =====
+            // Puan bazlı erişim kontrolü artık burada değil, yarın için kontrol kısmında yapılıyor (bugün için her zaman açık)
 
             var today = DateOnly.FromDateTime(DateTime.Now);
 
@@ -240,19 +249,28 @@ namespace ReservationService.Controllers
                 });
             }
 
-            // Yarın için rezervasyon açılma saati kontrolü
+            // Yarın için rezervasyon açılma saati ve puan kontrolü
             if (rDate > today)
             {
-                var accessTime = await _priorityService.GetAccessTimeAsync(request.StudentNumber);
-                var now = DateTime.Now.TimeOfDay;
-                
-                if (now < accessTime)
+                // Admin kullanıcıları kontrol dışında tut
+                if (!IsAdmin || !request.StudentNumber.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase))
                 {
-                    var accessTimeStr = $"{accessTime.Hours:D2}:{accessTime.Minutes:D2}";
-                    return BadRequest(new
+                    var accessCheck = await _priorityService.CheckAccessAsync(request.StudentNumber);
+                    if (!accessCheck.CanAccess)
                     {
-                        message = $"Yarın için rezervasyonlar sizin için saat {accessTimeStr}'de açılacak. Şu an sadece bugün için rezervasyon yapabilirsiniz."
-                    });
+                        var accessTimeStr = $"{accessCheck.AllowedTime.Hours:D2}:{accessCheck.AllowedTime.Minutes:D2}";
+                        _logger.LogWarning(
+                            "Access denied for tomorrow {StudentNumber}. Score: {Score}, AllowedTime: {AllowedTime}, CurrentTime: {CurrentTime}",
+                            request.StudentNumber, accessCheck.UserScore, accessCheck.AllowedTime, accessCheck.CurrentTime
+                        );
+                        return BadRequest(new
+                        {
+                            message = $"Yarın için rezervasyonlar sizin için saat {accessTimeStr}'de açılacak. Şu an sadece bugün için rezervasyon yapabilirsiniz.",
+                            userScore = accessCheck.UserScore,
+                            allowedTime = accessCheck.AllowedTime.ToString(@"hh\:mm"),
+                            remainingMinutes = accessCheck.RemainingMinutes
+                        });
+                    }
                 }
             }
 
@@ -282,17 +300,32 @@ namespace ReservationService.Controllers
                 });
             }
 
+            // Aynı öğrencinin aynı gün aynı koltuğa ardışık rezervasyon almasını engelle
+            var hasSameTableSameDay = await _context.Reservations.AnyAsync(r =>
+                r.StudentNumber == request.StudentNumber &&
+                r.TableId == request.TableId &&
+                r.SeatIndex == request.SeatIndex &&
+                r.ReservationDate == rDate);
+
+            if (hasSameTableSameDay)
+            {
+                return BadRequest(new
+                {
+                    message = "Bu koltuğa aynı gün içinde birden fazla rezervasyon oluşturamazsınız. Farklı bir koltuk seçiniz."
+                });
+            }
+
             var isOccupied = await _context.Reservations.AnyAsync(r =>
                 r.TableId == request.TableId &&
+                r.SeatIndex == request.SeatIndex &&
                 r.ReservationDate == rDate &&
-                ((r.StartTime <= rStart && r.EndTime > rStart) ||
-                 (r.StartTime < rEnd && r.EndTime >= rEnd)));
+                ((r.StartTime < rEnd && r.EndTime > rStart)));
 
             if (isOccupied)
             {
                 return BadRequest(new
                 {
-                    message = "Bu saat aralığında masa dolu."
+                    message = "Bu koltuk bu saat aralığında dolu."
                 });
             }
 
@@ -302,6 +335,8 @@ namespace ReservationService.Controllers
             var reservation = new Reservation
             {
                 TableId = request.TableId,
+                SeatIndex = request.SeatIndex,
+                SeatCode = request.SeatCode,
                 StudentNumber = request.StudentNumber.Trim(),
                 ReservationDate = rDate,
                 StartTime = rStart,
@@ -330,7 +365,7 @@ namespace ReservationService.Controllers
                     StudentType = reservation.StudentType,
                     CreatedAt = DateTime.UtcNow
                 };
-                _publisher.Publish(createdEvent, "reservation.created");
+                _publisher.Publish(createdEvent, "reservation.created"); // EXTENSION POINT: Bildirim/analitik servisi eklendiğinde bu event tüketilecek.
                 _logger.LogInformation("Reservation {ReservationId} created for student {StudentNumber}", reservation.Id, reservation.StudentNumber);
             }
             catch (Exception ex)
@@ -370,20 +405,68 @@ namespace ReservationService.Controllers
             foreach(var res in reservations)
             {
                 var table = await _context.Tables.FindAsync(res.TableId);
+                string seatLabel;
+                if (!string.IsNullOrEmpty(res.SeatCode))
+                {
+                    // Use stored seat code directly (W1, BL-2, T5-3, etc.)
+                    seatLabel = res.SeatCode;
+                }
+                else if (table != null)
+                {
+                    // Legacy: transform "Masa 1-5" → "T5-{seatNum}"
+                    var posMatch = System.Text.RegularExpressions.Regex.Match(table.TableNumber, @"-(\d+)$");
+                    var tablePos = posMatch.Success ? posMatch.Groups[1].Value : table.TableNumber;
+                    seatLabel = $"T{tablePos}-{res.SeatIndex + 1}";
+                }
+                else
+                {
+                    seatLabel = "Bilinmiyor";
+                }
                 result.Add(new {
                     res.Id,
                     ReservationDate = res.ReservationDate.ToString("yyyy-MM-dd"),
                     StartTime = res.StartTime.ToString("HH:mm"),
                     EndTime = res.EndTime.ToString("HH:mm"),
                     res.IsAttended,
+                    res.PenaltyProcessed,
                     res.StudentType,
                     res.Score,
-                    TableNumber = table?.TableNumber ?? "Bilinmiyor",
-                    FloorId = table?.FloorId
+                    TableNumber = seatLabel,
+                    FloorId = table?.FloorId,
+                    res.SeatIndex,
+                    res.SeatCode
                 });
             }
 
             return Ok(result);
+        }
+
+        [HttpGet("Stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var reservations = await _context.Reservations.ToListAsync();
+            var total = reservations.Count;
+            var attended = reservations.Count(r => r.IsAttended);
+            var noShow = reservations.Count(r => r.PenaltyProcessed && !r.IsAttended);
+
+            var byType = reservations
+                .GroupBy(r => r.StudentType ?? "Bilinmiyor")
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var byHour = reservations
+                .GroupBy(r => r.StartTime.Hour)
+                .ToDictionary(g => g.Key.ToString("D2"), g => g.Count());
+
+            return Ok(new
+            {
+                totalReservations = total,
+                attendedCount = attended,
+                attendanceRate = total > 0 ? Math.Round((double)attended / total * 100, 1) : 0.0,
+                noShowCount = noShow,
+                noShowRate = total > 0 ? Math.Round((double)noShow / total * 100, 1) : 0.0,
+                byStudentType = byType,
+                reservationsByHour = byHour
+            });
         }
 
         [HttpGet("All")]
@@ -405,6 +488,7 @@ namespace ReservationService.Controllers
                     StartTime = res.StartTime.ToString("HH:mm"),
                     EndTime = res.EndTime.ToString("HH:mm"),
                     res.IsAttended,
+                    res.PenaltyProcessed,
                     res.StudentType,
                     TableNumber = table?.TableNumber ?? "Bilinmiyor",
                     FloorId = table?.FloorId
@@ -447,7 +531,7 @@ namespace ReservationService.Controllers
                     ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
                     CancelledAt = DateTime.UtcNow
                 };
-                _publisher.Publish(cancelledEvent, "reservation.cancelled");
+                _publisher.Publish(cancelledEvent, "reservation.cancelled"); // EXTENSION POINT: Bildirim/analitik servisi eklendiğinde bu event tüketilecek.
                 _logger.LogInformation("Reservation {ReservationId} cancelled for student {StudentNumber}", reservation.Id, reservation.StudentNumber);
             }
             catch (Exception ex)
@@ -621,21 +705,24 @@ namespace ReservationService.Controllers
         }
 
         [HttpGet("Profile/{studentNumber}")]
+        [Authorize]
         public async Task<IActionResult> GetProfile(string studentNumber)
         {
-            if (string.IsNullOrWhiteSpace(studentNumber))
-            {
-                return BadRequest(new { message = "Öğrenci numarası zorunludur." });
-            }
-
             if (!IsAdmin)
             {
+                // For regular users, always use the authenticated token's student number
+                // (prevents URL-vs-claim mismatch causing false 403s)
                 var currentStudentNumber = GetCurrentStudentNumber();
-                if (string.IsNullOrWhiteSpace(currentStudentNumber) ||
-                    !string.Equals(studentNumber, currentStudentNumber, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(currentStudentNumber))
                 {
                     return Forbid();
                 }
+                studentNumber = currentStudentNumber;
+            }
+
+            if (string.IsNullOrWhiteSpace(studentNumber))
+            {
+                return BadRequest(new { message = "Öğrenci numarası zorunludur." });
             }
 
             var profile = await GetOrCreateStudentProfileAsync(studentNumber, null);
@@ -1009,6 +1096,8 @@ namespace ReservationService.Controllers
     public class ReservationRequest
     {
         public int TableId { get; set; }
+        public int SeatIndex { get; set; } = 0;
+        public string? SeatCode { get; set; }
         public string StudentNumber { get; set; } = string.Empty;
         public string ReservationDate { get; set; } = string.Empty;
         public string StartTime { get; set; } = string.Empty;

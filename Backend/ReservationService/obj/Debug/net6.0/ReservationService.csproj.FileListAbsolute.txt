@@ -129,3 +129,10 @@ C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationSe
 C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\obj\Debug\net6.0\ReservationService.pdb
 C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\obj\Debug\net6.0\ReservationService.genruntimeconfig.cache
 C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\obj\Debug\net6.0\ref\ReservationService.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\uyslz\Desktop\Tubitak-2209A-Sau-Kutuphane-sistemi\Backend\ReservationService\bin\Debug\net6.0\System.IdentityModel.Tokens.Jwt.dll

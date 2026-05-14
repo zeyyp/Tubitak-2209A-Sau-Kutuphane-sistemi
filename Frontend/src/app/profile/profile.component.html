@@ -80,7 +80,7 @@
                 <tr *ngFor="let res of reservations">
                   <td>{{ res.reservationDate || res.ReservationDate }}</td>
                   <td>{{ res.startTime || res.StartTime }} - {{ res.endTime || res.EndTime }}</td>
-                  <td><span class="badge bg-primary">{{ res.tableNumber || res.TableNumber }}</span> <small class="text-muted">Kat: {{ res.floorId || res.FloorId }}</small></td>
+                  <td><span class="badge bg-primary">{{ res.tableNumber || res.TableNumber }}</span> <small *ngIf="(res.floorId || res.FloorId)" class="text-muted">{{ (res.floorId || res.FloorId) }}. Kat</small></td>
                   <td>
                     <span class="badge"
                           [ngClass]="{
@@ -94,10 +94,11 @@
                   </td>
                   <td>
                     <span *ngIf="res.isAttended || res.IsAttended" class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Giriş Yapıldı</span>
-                    <span *ngIf="!(res.isAttended || res.IsAttended)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
+                    <span *ngIf="!(res.isAttended || res.IsAttended) && (res.penaltyProcessed || res.PenaltyProcessed)" class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Gelmedi (Cezalı)</span>
+                    <span *ngIf="!(res.isAttended || res.IsAttended) && !(res.penaltyProcessed || res.PenaltyProcessed)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
                   </td>
                   <td>
-                    <button *ngIf="!(res.isAttended || res.IsAttended)" class="btn btn-danger btn-sm" (click)="cancelReservation((res.id || res.Id))">
+                    <button *ngIf="!(res.isAttended || res.IsAttended) && !(res.penaltyProcessed || res.PenaltyProcessed)" class="btn btn-danger btn-sm" (click)="cancelReservation((res.id || res.Id))">
                       <i class="bi bi-x-circle me-1"></i>İptal Et
                     </button>
                   </td>

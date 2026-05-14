@@ -1,20 +1,35 @@
+using FeedbackService.Data;
 using FeedbackService.Services;
+using Microsoft.EntityFrameworkCore;
+
+// Npgsql v6+ varsayılan olarak timestamp with time zone bekler.
+// Mevcut şema timestamp without time zone kullandığından legacy modu açıyoruz.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IFeedbackRepository, FileFeedbackRepository>();
+// PostgreSQL veritabanı bağlantısı
+builder.Services.AddDbContext<FeedbackDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IFeedbackRepository, EfFeedbackRepository>();
 builder.Services.AddSingleton<IAIAnalysisService, OpenAIAnalysisService>();
 builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS Politikası - ngrok için geçici olarak tüm origin'lere açık
+// CORS Politikası — izin verilen origin'ler appsettings.json üzerinden yapılandırılır
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("SecurePolicy", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true)  // Tüm origin'lere izin (ngrok için)
+        var allowedOrigins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>()
+            ?? new[] { "http://localhost:4200" };
+
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -33,6 +48,21 @@ if (!builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+// Veritabanı tablolarını oluştur (migration olmadan)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FeedbackDbContext>();
+    try
+    {
+        db.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+        logger?.LogWarning(ex, "Veritabanı hazırlanamadı. Uygulama yükleniyor...");
+    }
+}
 
 // Security Headers
 app.Use(async (context, next) =>

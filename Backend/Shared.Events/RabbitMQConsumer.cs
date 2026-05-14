@@ -7,46 +7,59 @@ namespace Shared.Events;
 
 public class RabbitMQConsumer : IDisposable
 {
-    private readonly IConnection _connection;
-    private readonly IModel _channel;
+    private IConnection? _connection;
+    private IModel? _channel;
     private readonly string _exchangeName;
     private readonly string _queueName;
+    private bool _available = false;
 
     public RabbitMQConsumer(string hostName, string userName, string password, string queueName, string exchangeName = "library_events")
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = hostName,
-            UserName = userName,
-            Password = password,
-            AutomaticRecoveryEnabled = true,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
-        };
-
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
         _exchangeName = exchangeName;
         _queueName = queueName;
 
-        // Declare exchange
-        _channel.ExchangeDeclare(
-            exchange: _exchangeName,
-            type: ExchangeType.Topic,
-            durable: true,
-            autoDelete: false
-        );
+        try
+        {
+            var factory = new ConnectionFactory
+            {
+                HostName = hostName,
+                UserName = userName,
+                Password = password,
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
+                RequestedConnectionTimeout = TimeSpan.FromSeconds(5)
+            };
 
-        // Declare queue
-        _channel.QueueDeclare(
-            queue: _queueName,
-            durable: true,
-            exclusive: false,
-            autoDelete: false
-        );
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+
+            _channel.ExchangeDeclare(
+                exchange: _exchangeName,
+                type: ExchangeType.Topic,
+                durable: true,
+                autoDelete: false
+            );
+
+            _channel.QueueDeclare(
+                queue: _queueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false
+            );
+
+            _available = true;
+        }
+        catch (Exception)
+        {
+            // RabbitMQ mevcut değil — consumer devre dışı
+            _available = false;
+        }
     }
 
     public void Subscribe<T>(string routingKey, Action<T> handler) where T : class
     {
+        if (!_available || _channel == null) return;
+
         // Bind queue to exchange with routing key
         _channel.QueueBind(
             queue: _queueName,

@@ -7,6 +7,13 @@ using Shared.Events;
 
 namespace TurnstileService.Controllers;
 
+/// <summary>
+/// Turnike Simülasyon Servisi.
+/// Fiziksel kart okuyucu donanımına üniversite altyapısı üzerinden erişim
+/// sağlanamadığından bu servis API tabanlı simülasyon olarak tasarlanmıştır.
+/// Gerçek donanım entegrasyonu için /enter endpoint'i fiziksel turnike
+/// sisteminin API çıkışına minimum konfigürasyon ile bağlanabilir.
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
 public class TurnstileController : ControllerBase

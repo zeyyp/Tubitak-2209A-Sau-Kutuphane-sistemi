@@ -14,13 +14,13 @@ namespace ReservationService.Services
         private const int ScoreLisans = 100;
         private const int ExamWeekBonus = 50;
 
-        // Erişim saatleri (Test için: 17:00, 17:05, 17:10, 17:15)
+        // Erişim saatleri (üretim değerleri — akademik öncelik sıralamasına göre)
         private static readonly Dictionary<int, TimeSpan> AccessTimes = new()
         {
-            { 300, new TimeSpan(17, 0, 0) },   // Doktora: 17:00
-            { 200, new TimeSpan(17, 5, 0) },   // YL: 17:05
-            { 150, new TimeSpan(17, 10, 0) },  // Sınavlı Lisans: 17:10
-            { 100, new TimeSpan(17, 15, 0) }   // Normal Lisans: 17:15
+            { 300, new TimeSpan(8, 0, 0) },    // Doktora: 08:00
+            { 200, new TimeSpan(10, 0, 0) },   // YüksekLisans: 10:00
+            { 150, new TimeSpan(12, 0, 0) },   // Sınavlı Lisans: 12:00
+            { 100, new TimeSpan(14, 0, 0) }    // Normal Lisans: 14:00
         };
 
         public PriorityService(ReservationDbContext context, ILogger<PriorityService> logger)

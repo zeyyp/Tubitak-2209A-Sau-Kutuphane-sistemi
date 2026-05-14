@@ -61,6 +61,8 @@ namespace ReservationService.Data
         public string StudentType { get; set; } = "Lisans";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int Score { get; set; }
+        public int SeatIndex { get; set; } = 0;
+        public string? SeatCode { get; set; }
     }
 
     public class Table

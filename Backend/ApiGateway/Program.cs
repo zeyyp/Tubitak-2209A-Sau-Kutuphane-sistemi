@@ -20,12 +20,17 @@ if (isDocker)
 builder.Configuration.AddJsonFile(ocelotConfigFile, optional: false, reloadOnChange: true);
 builder.Services.AddOcelot(builder.Configuration);
 
-// CORS Politikası - ngrok için geçici olarak tüm origin'lere açık
+// CORS Politikası — izin verilen origin'ler appsettings.json üzerinden yapılandırılır
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("SecurePolicy", policy =>
     {
-        policy.SetIsOriginAllowed(origin => true)  // Tüm origin'lere izin (ngrok için)
+        var allowedOrigins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>()
+            ?? new[] { "http://localhost:4200" };
+
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

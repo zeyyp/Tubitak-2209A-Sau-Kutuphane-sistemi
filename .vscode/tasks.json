@@ -20,7 +20,21 @@
                 "--project",
                 "${workspaceFolder}/Backend/ApiGateway/ApiGateway.csproj",
                 "--urls",
-                "http://localhost:5000"
+                "http://localhost:5010"
+            ],
+            "isBackground": true,
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "run (Feedback)",
+            "command": "dotnet",
+            "type": "shell",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/Backend/FeedbackService/FeedbackService.csproj",
+                "--urls",
+                "http://localhost:5004"
             ],
             "isBackground": true,
             "problemMatcher": "$msCompile"

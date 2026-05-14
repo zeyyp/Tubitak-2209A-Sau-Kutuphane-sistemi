@@ -19,10 +19,12 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     const token = this.authService.getToken();
+    console.log('AuthInterceptor called for:', req.url, 'Token:', token ? 'exists' : 'null');
 
     // Only attach token to requests targeting the API Gateway
     if (token && req.url.startsWith(this.gatewayBase)) {
       req = this.addToken(req, token);
+      console.log('Token appended to request');
     }
 
     return next.handle(req).pipe(

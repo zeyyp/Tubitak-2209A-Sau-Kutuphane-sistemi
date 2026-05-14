@@ -1,0 +1,196 @@
+{
+  "test_date": "2026-05-02",
+  "model": "gpt-3.5-turbo",
+  "n": 30,
+  "correct": 29,
+  "accuracy_pct": 96.7,
+  "threshold_pct": 90,
+  "passed": true,
+  "label_distribution": {
+    "Pozitif": 10,
+    "Negatif": 10,
+    "Nötr": 10
+  },
+  "results": [
+    {
+      "id": 1,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 2,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 3,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 4,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 5,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 6,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 7,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 8,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 9,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 10,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 11,
+      "expected": "Nötr",
+      "got": "Pozitif",
+      "match": false
+    },
+    {
+      "id": 12,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 13,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 14,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 15,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 16,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 17,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 18,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 19,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 20,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 21,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 22,
+      "expected": "Negatif",
+      "got": "Negatif",
+      "match": true
+    },
+    {
+      "id": 23,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 24,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 25,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 26,
+      "expected": "Pozitif",
+      "got": "Pozitif",
+      "match": true
+    },
+    {
+      "id": 27,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 28,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 29,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    },
+    {
+      "id": 30,
+      "expected": "Nötr",
+      "got": "Nötr",
+      "match": true
+    }
+  ]
+}

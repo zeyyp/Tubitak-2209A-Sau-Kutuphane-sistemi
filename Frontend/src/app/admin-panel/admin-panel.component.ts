@@ -19,12 +19,14 @@ export class AdminPanelComponent implements OnInit {
   penalties: any[] = [];
   examWeeks: any[] = [];
   faculties: any[] = [];
+  stats: any = null;
   isLoadingFeedbacks = false;
   isLoadingAIAnalysis = false;
   isLoadingReservations = false;
   isLoadingPenalties = false;
   isLoadingExamWeeks = false;
   isLoadingFaculties = false;
+  isLoadingStats = false;
   penaltiesError = '';
   aiAnalysisError = '';
 
@@ -58,8 +60,22 @@ export class AdminPanelComponent implements OnInit {
     this.isLoadingPenalties = true;
     this.isLoadingExamWeeks = true;
     this.isLoadingFaculties = true;
+    this.isLoadingStats = true;
     this.penaltiesError = '';
     this.cdr.detectChanges();
+
+    this.reservationService.getStats().subscribe({
+      next: (data) => {
+        this.stats = data;
+        this.isLoadingStats = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.stats = null;
+        this.isLoadingStats = false;
+        this.cdr.detectChanges();
+      }
+    });
 
     this.feedbackService.getFeedbacks().subscribe({
       next: (data) => {

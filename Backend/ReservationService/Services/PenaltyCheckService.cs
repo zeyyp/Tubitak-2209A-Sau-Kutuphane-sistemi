@@ -114,7 +114,7 @@ public class PenaltyCheckService : BackgroundService
                             BanReason = profile.BanReason,
                             UpdatedAt = DateTime.UtcNow
                         };
-                        _publisher.Publish(profileUpdatedEvent, "student.profile.updated");
+                        _publisher.Publish(profileUpdatedEvent, "student.profile.updated"); // EXTENSION POINT: Profil senkronizasyon/bildirim servisi eklendiğinde bu event tüketilecek.
                     }
                     catch (Exception ex)
                     {

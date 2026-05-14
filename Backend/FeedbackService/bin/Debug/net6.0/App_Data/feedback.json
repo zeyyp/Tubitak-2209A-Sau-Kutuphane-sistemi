@@ -1,50 +1,182 @@
 [
   {
     "id": 1,
-    "studentNumber": "20201234",
-    "message": "K\u00FCt\u00FCphanedeki sessiz alanlar \u00E7ok g\u00FCzel, rezervasyon sistemi h\u0131zl\u0131 \u00E7al\u0131\u015F\u0131yor.",
-    "date": "2025-12-04T22:51:03.1670514+03:00"
+    "studentNumber": "G221210069",
+    "message": "Masalar \u00E7ok g\u00FCr\u00FClt\u00FCl\u00FC, konsantre olam\u0131yorum.",
+    "date": "2026-03-29T15:28:50.5428465+00:00"
   },
   {
     "id": 2,
-    "studentNumber": "20205678",
-    "message": "Ak\u015Fam saatlerinde daha fazla masa a\u00E7\u0131lmas\u0131n\u0131 isterim.",
-    "date": "2025-12-05T22:51:03.1672941+03:00"
+    "studentNumber": "G221210069",
+    "message": "Rezervasyon sistemi bazen yava\u015F \u00E7al\u0131\u015F\u0131yor.",
+    "date": "2026-03-29T15:29:01.9307234+00:00"
   },
   {
     "id": 3,
-    "studentNumber": "20207890",
-    "message": "Rezervasyon iptal i\u015Flemi \u00E7ok pratik olmu\u015F, te\u015Fekk\u00FCrler.",
-    "date": "2025-12-06T16:51:03.1672956+03:00"
+    "studentNumber": "G221210069",
+    "message": "K\u00FCt\u00FCphanede yeterli priz yok, bilgisayar\u0131m \u015Farj olmuyor.",
+    "date": "2026-03-29T15:29:09.1369111+00:00"
   },
   {
     "id": 4,
-    "studentNumber": "12345",
-    "message": "aaaa",
-    "date": "2025-12-06T23:16:12.7779405+03:00"
+    "studentNumber": "G221210069",
+    "message": "Rezervasyon sistemi sayesinde art\u0131k yer bulamama sorunu ya\u015Fam\u0131yorum.",
+    "date": "2026-03-29T15:29:16.8043875+00:00"
   },
   {
     "id": 5,
-    "studentNumber": "777",
-    "message": "dd",
-    "date": "2025-12-09T16:18:31.4423338+03:00"
+    "studentNumber": "G221210069",
+    "message": "Uygulama \u00E7ok kullan\u0131\u015Fl\u0131, kolayca rezervasyon yapabiliyorum.",
+    "date": "2026-03-29T15:29:24.9840003+00:00"
   },
   {
     "id": 6,
-    "studentNumber": "777",
-    "message": "ww",
-    "date": "2025-12-09T16:45:42.7842847+03:00"
+    "studentNumber": "G221210069",
+    "message": "Akademik \u00F6ncelik sistemi \u00E7ok adil buluyorum.",
+    "date": "2026-03-29T15:29:31.2092885+00:00"
   },
   {
     "id": 7,
-    "studentNumber": "12345",
-    "message": "aaaaaaaaa",
-    "date": "2025-12-11T15:15:02.446775+03:00"
+    "studentNumber": "G221210069",
+    "message": "Mobil uygulama da olsa iyi olurdu.",
+    "date": "2026-03-29T15:29:52.1616791+00:00"
   },
   {
     "id": 8,
-    "studentNumber": "123456",
-    "message": "aassss",
-    "date": "2025-12-11T16:13:45.1258794+03:00"
+    "studentNumber": "G221210069",
+    "message": "Rezervasyon s\u00FCresi 4 saatten fazla da olabilir.",
+    "date": "2026-03-29T15:29:59.1399872+00:00"
+  },
+  {
+    "id": 9,
+    "studentNumber": "G221210069",
+    "message": "Farkl\u0131 kat se\u00E7ene\u011Fi eklenebilir.",
+    "date": "2026-03-29T15:30:12.1189043+00:00"
+  },
+  {
+    "id": 10,
+    "studentNumber": "G221210001",
+    "message": "Masa \u00F6zelliklerine g\u00F6re filtreleme olsa g\u00FCzel olurdu.",
+    "date": "2026-03-29T15:31:29.6166744+00:00"
+  },
+  {
+    "id": 11,
+    "studentNumber": "G221210001",
+    "message": "Bildirim sistemi eklenebilir, rezervasyon saatini hat\u0131rlats\u0131n.",
+    "date": "2026-03-29T15:31:39.8726394+00:00"
+  },
+  {
+    "id": 12,
+    "studentNumber": "G221210001",
+    "message": "Grup \u00E7al\u0131\u015Fma odalar\u0131 da eklenebilir.",
+    "date": "2026-03-29T15:31:48.083532+00:00"
+  },
+  {
+    "id": 13,
+    "studentNumber": "G221210001",
+    "message": "Art\u0131k k\u00FCt\u00FCphaneye gelmeden \u00F6nce yerim oldu\u011Funu biliyorum, harika.",
+    "date": "2026-03-29T15:31:58.4316441+00:00"
+  },
+  {
+    "id": 14,
+    "studentNumber": "G221210001",
+    "message": "Turnike sistemi giri\u015F \u00E7\u0131k\u0131\u015F\u0131 \u00E7ok h\u0131zland\u0131rd\u0131.",
+    "date": "2026-03-29T15:32:05.4674182+00:00"
+  },
+  {
+    "id": 15,
+    "studentNumber": "G221210001",
+    "message": "Aray\u00FCz \u00E7ok sade ve anla\u015F\u0131l\u0131r.",
+    "date": "2026-03-29T15:32:16.672025+00:00"
+  },
+  {
+    "id": 16,
+    "studentNumber": "G221210001",
+    "message": "Klima \u00E7ok fazla a\u00E7\u0131k, \u00FC\u015F\u00FCyoruz.",
+    "date": "2026-03-29T15:32:23.7976048+00:00"
+  },
+  {
+    "id": 17,
+    "studentNumber": "G221210001",
+    "message": "Baz\u0131 masalar sallan\u0131yor, de\u011Fi\u015Ftirilmesi laz\u0131m.",
+    "date": "2026-03-29T15:32:29.9665031+00:00"
+  },
+  {
+    "id": 18,
+    "studentNumber": "G221210001",
+    "message": "Rezervasyon iptal etmek \u00E7ok karma\u015F\u0131k.",
+    "date": "2026-03-29T15:32:36.5736544+00:00"
+  },
+  {
+    "id": 19,
+    "studentNumber": "G221210001",
+    "message": "Giri\u015F turnikesi bazen okutmuyor.",
+    "date": "2026-03-29T15:32:46.6091045+00:00"
+  },
+  {
+    "id": 20,
+    "studentNumber": "G221210001",
+    "message": "K\u00FCt\u00FCphane \u00E7ok erken kapan\u0131yor.",
+    "date": "2026-03-29T15:32:53.0479906+00:00"
+  },
+  {
+    "id": 21,
+    "studentNumber": "G221210001",
+    "message": "Temizlik yetersiz, masalar kirli geliyor.",
+    "date": "2026-03-29T15:32:59.4379271+00:00"
+  },
+  {
+    "id": 22,
+    "studentNumber": "G221210001",
+    "message": "Wi-Fi ba\u011Flant\u0131s\u0131 zay\u0131f.",
+    "date": "2026-03-29T15:33:05.7355432+00:00"
+  },
+  {
+    "id": 23,
+    "studentNumber": "G221210001",
+    "message": "S\u0131nav d\u00F6neminde \u00F6ncelik verilmesi \u00E7ok mant\u0131kl\u0131 bir uygulama.",
+    "date": "2026-03-29T15:33:19.9891118+00:00"
+  },
+  {
+    "id": 24,
+    "studentNumber": "G221210001",
+    "message": "Sistem \u00E7ok stabil \u00E7al\u0131\u015F\u0131yor, hi\u00E7 sorun ya\u015Famad\u0131m.",
+    "date": "2026-03-29T15:33:26.9452753+00:00"
+  },
+  {
+    "id": 25,
+    "studentNumber": "G221210001",
+    "message": "\u00D6nceki kaosa g\u00F6re \u00E7ok b\u00FCy\u00FCk geli\u015Fme.",
+    "date": "2026-03-29T15:33:34.9384371+00:00"
+  },
+  {
+    "id": 26,
+    "studentNumber": "G221210001",
+    "message": "Geri bildirim g\u00F6nderebilmek g\u00FCzel, sesimiz duyuluyor.",
+    "date": "2026-03-29T15:33:42.2111223+00:00"
+  },
+  {
+    "id": 27,
+    "studentNumber": "G221210001",
+    "message": "Farkl\u0131 dil se\u00E7ene\u011Fi olsa iyi olurdu.",
+    "date": "2026-03-29T15:33:49.9219297+00:00"
+  },
+  {
+    "id": 28,
+    "studentNumber": "G221210001",
+    "message": "Rezervasyon ge\u00E7mi\u015Fini g\u00F6rmek istiyorum.",
+    "date": "2026-03-29T15:33:57.1495168+00:00"
+  },
+  {
+    "id": 29,
+    "studentNumber": "G221210001",
+    "message": "K\u00FCt\u00FCphane haritas\u0131 \u00FCzerinden masa se\u00E7imi yap\u0131labilir.",
+    "date": "2026-03-29T15:34:03.7856819+00:00"
+  },
+  {
+    "id": 30,
+    "studentNumber": "G221210001",
+    "message": "Arkada\u015Flarla ayn\u0131 b\u00F6lge i\u00E7in ortak rezervasyon yap\u0131labilse iyi olur.",
+    "date": "2026-03-29T15:34:11.3374111+00:00"
   }
 ]

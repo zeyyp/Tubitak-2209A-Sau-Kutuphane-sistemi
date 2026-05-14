@@ -1,0 +1,331 @@
+﻿<div class="dashboard">
+
+  <!-- ════════════════════════════════════════════════════════════
+       LEFT SIDEBAR — Yeni Rezervasyon Form (reservation-filter style)
+  ═══════════════════════════════════════════════════════════════ -->
+  <aside class="sidebar" *ngIf="!embeddedMode">
+
+    <div class="rf-card">
+      <h4 class="rf-card__title">
+        <i class="bi bi-calendar-check"></i> Yeni Rezervasyon
+      </h4>
+
+      <form (ngSubmit)="applyFilter()" #filterForm="ngForm">
+
+        <!-- Puan bilgisi -->
+        <div class="rf-score-info" *ngIf="accessCheckResult">
+          <i class="bi bi-star-fill"></i>
+          <strong>Puan:</strong> {{ accessCheckResult.userScore }}
+          &nbsp;|&nbsp;
+          <strong>Erişim:</strong> {{ accessCheckResult.allowedTime }}
+        </div>
+
+        <!-- ── Tarih ── -->
+        <div class="rf-field">
+          <label class="rf-label">
+            <i class="bi bi-calendar3"></i> Rezervasyon Tarihi
+          </label>
+          <div class="rf-btn-group">
+            <button type="button" class="rf-date-btn"
+                    [class.rf-date-btn--active]="selectedDate === todayStr"
+                    (click)="selectDate('today')">
+              <i class="bi bi-calendar-check"></i> Bugün
+            </button>
+            <button type="button" class="rf-date-btn"
+                    [class.rf-date-btn--active]="selectedDate === tomorrowStr"
+                    [disabled]="!canAccessTomorrow || checkingAccess"
+                    [title]="!canAccessTomorrow ? ('Erişim saati: ' + (tomorrowAccessTime || '?')) : ''"
+                    (click)="selectDate('tomorrow')">
+              <i class="bi" [ngClass]="canAccessTomorrow ? 'bi-calendar-plus' : 'bi-lock'"></i> Yarın
+            </button>
+          </div>
+          <small class="rf-hint rf-hint--warning" *ngIf="!canAccessTomorrow && tomorrowAccessTime">
+            <i class="bi bi-clock"></i> Yarın için rezervasyonlar saat <strong>{{ tomorrowAccessTime }}</strong>'de açılacaktır.
+          </small>
+          <small class="rf-hint rf-hint--success" *ngIf="canAccessTomorrow">
+            <i class="bi bi-check-circle"></i> Yarın için rezervasyon yapabilirsiniz!
+          </small>
+        </div>
+
+        <!-- ── Blok ── -->
+        <div class="rf-field">
+          <label class="rf-label">
+            <i class="bi bi-building"></i> Blok
+          </label>
+          <select class="rf-select" [(ngModel)]="selectedBlock" name="block" (ngModelChange)="onBlockChange()">
+            <option value="A">A Blok</option>
+            <option value="B">B Blok</option>
+          </select>
+        </div>
+
+        <!-- ── Kat ── -->
+        <div class="rf-field">
+          <label class="rf-label">
+            <i class="bi bi-layers"></i> Kat
+          </label>
+          <div class="rf-btn-group">
+            <button type="button" class="rf-floor-btn"
+                    [class.rf-floor-btn--active]="activeFloor === 1"
+                    (click)="setFloor(1)">
+              1. Kat
+            </button>
+            <button type="button" class="rf-floor-btn"
+                    [class.rf-floor-btn--active]="activeFloor === 2"
+                    (click)="setFloor(2)">
+              2. Kat
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Saat ── -->
+        <div class="rf-row">
+          <div class="rf-field rf-field--half">
+            <label class="rf-label">
+              <i class="bi bi-clock"></i> Baslangic Saati
+            </label>
+            <select class="rf-select" name="startTime"
+                    [(ngModel)]="selectedStartTime"
+                    (ngModelChange)="onStartTimeChange()" required>
+              <option value="" disabled>Saat secin</option>
+              <option *ngFor="let t of startTimeSlots" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+          <div class="rf-field rf-field--half">
+            <label class="rf-label">
+              <i class="bi bi-clock-fill"></i> Bitis Saati
+            </label>
+            <select class="rf-select" name="endTime"
+                    [(ngModel)]="selectedEndTime" required>
+              <option value="" disabled>Saat secin</option>
+              <option *ngFor="let t of endTimeSlots" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Duration hint -->
+        <div class="rf-duration" *ngIf="durationHours > 0">
+          <i class="bi bi-hourglass-split"></i>
+          {{ durationHours }} saat rezervasyon
+        </div>
+
+        <!-- Access info banner -->
+        <div class="rf-info-banner" *ngIf="!canAccessTomorrow && !checkingAccess && !tomorrowAccessTime">
+          <i class="bi bi-lock"></i>
+          Yarın için rezervasyon belirli bir saatten sonra açılır.
+        </div>
+
+        <!-- ── Submit ── -->
+        <button type="submit" class="rf-submit" [disabled]="!filterForm.form.valid || isSearching">
+          <i class="bi bi-search" *ngIf="!isSearching"></i>
+          <i class="bi bi-arrow-repeat rf-spin" *ngIf="isSearching"></i>
+          {{ isSearching ? 'ARANIYOR...' : 'MÜSAİTLİK KONTROL ET' }}
+        </button>
+
+      </form>
+
+      <!-- Stats -->
+      <div class="rf-stats">
+        <div class="rf-stat rf-stat--available">
+          <span class="rf-stat__num">{{ availableCount }}</span>
+          <span class="rf-stat__lbl">Musait</span>
+        </div>
+        <div class="rf-stat rf-stat--reserved">
+          <span class="rf-stat__num">{{ reservedCount }}</span>
+          <span class="rf-stat__lbl">Rezerve</span>
+        </div>
+        <div class="rf-stat rf-stat--total">
+          <span class="rf-stat__num">{{ totalSeats }}</span>
+          <span class="rf-stat__lbl">Toplam</span>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="rf-legend">
+        <div class="rf-legend-row"><span class="rf-dot rf-dot--available"></span> Musait koltuk</div>
+        <div class="rf-legend-row"><span class="rf-dot rf-dot--reserved"></span> Rezerveli koltuk</div>
+        <div class="rf-legend-row"><span class="rf-dot rf-dot--selected"></span> Secili koltuk</div>
+      </div>
+
+    </div>
+
+    <!-- Selected seat confirm (inside sidebar) -->
+    <div class="rf-selection-card" *ngIf="selectedSeat">
+      <div class="rf-selection-card__label">Secili Koltuk</div>
+      <div class="rf-selection-card__seat">{{ selectedSeat.label }}</div>
+      <button class="rf-selection-confirm" (click)="confirmReservation()">
+        <i class="bi bi-check-lg"></i> Rezervasyonu Tamamla
+      </button>
+      <button class="rf-selection-cancel" (click)="cancelSelection()">Vazgec</button>
+    </div>
+
+  </aside>
+
+  <!-- ════════════════════════════════════════════════════════════
+       RIGHT MAP PANEL
+  ═══════════════════════════════════════════════════════════════ -->
+  <main class="map-panel">
+
+    <!-- Placeholder: shown before availability check is run -->
+    <div class="map-placeholder" *ngIf="!embeddedMode && !mapReady">
+      <div class="map-placeholder__icon"><i class="bi bi-search"></i></div>
+      <p class="map-placeholder__title">Koltuk haritasını görüntülemek için</p>
+      <p class="map-placeholder__hint">Sol taraftan tarih, saat ve kat seçimi yapıp<br><strong>Müsaitlik Kontrol Et</strong> butonuna tıklayın.</p>
+    </div>
+
+    <ng-container *ngIf="embeddedMode || mapReady">
+
+    <div class="map-topbar">
+      <div class="map-topbar__left">
+        <h1 class="map-topbar__title">Koltuk Haritasi</h1>
+        <span class="map-topbar__sub">
+          {{ selectedDate }}
+          <span *ngIf="selectedStartTime && selectedEndTime"> &middot; {{ selectedStartTime }} - {{ selectedEndTime }}</span>
+          <span> &middot; {{ selectedBlock === 'A' ? 'A Blok' : 'B Blok' }}</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="map-scroll">
+      <div class="room">
+
+        <div class="window-bar">
+          <span class="window-label">Pencere</span>
+        </div>
+
+        <div class="floor-body">
+          <div class="floor-center">
+
+            <div class="counter-area">
+              <div class="counter-shelf"><span class="counter-label">Pencere Kenari</span></div>
+              <div class="counter-seats">
+                <button
+                  *ngFor="let s of counterSeats; trackBy: trackBySeatId"
+                  class="seat-btn seat-btn--counter"
+                  [class.seat-btn--available]="s.status === 'available'"
+                  [class.seat-btn--reserved]="s.status === 'reserved'"
+                  [class.seat-btn--selected]="s.status === 'selected'"
+                  [disabled]="s.status === 'reserved'"
+                  [title]="s.label"
+                  (click)="onSeatClick(s)">
+                </button>
+              </div>
+            </div>
+
+            <div class="tables-area">
+
+              <div class="table-row">
+                <app-table *ngFor="let t of row1Tables; trackBy: trackById"
+                  [table]="t" (seatClick)="onSeatClick($event)">
+                </app-table>
+              </div>
+              <div class="table-row">
+                <app-table *ngFor="let t of row2Tables; trackBy: trackById"
+                  [table]="t" (seatClick)="onSeatClick($event)">
+                </app-table>
+              </div>
+
+              <div class="table-row">
+                <app-table *ngFor="let t of row3Tables; trackBy: trackById"
+                  [table]="t" (seatClick)="onSeatClick($event)">
+                </app-table>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+        <div class="room-footer">
+
+          <div class="wall-desk wall-desk--left">
+            <div class="wall-desk-seats">
+              <button
+                *ngFor="let s of leftWallDeskSeats; trackBy: trackBySeatId"
+                class="seat-btn seat-btn--counter"
+                [class.seat-btn--available]="s.status === 'available'"
+                [class.seat-btn--reserved]="s.status === 'reserved'"
+                [class.seat-btn--selected]="s.status === 'selected'"
+                [disabled]="s.status === 'reserved'"
+                [title]="s.label"
+                (click)="onSeatClick(s)">
+              </button>
+            </div>
+            <div class="wall-desk-shelf"><span class="wall-desk-label">Duvar Kenari</span></div>
+          </div>
+
+          <div class="entrance-gap">
+            <span class="stairs-label">Merdiven</span>
+            <span class="entrance-label">Giris / Cikis</span>
+          </div>
+
+          <div class="wall-desk wall-desk--right">
+            <div class="wall-desk-seats">
+              <button
+                *ngFor="let s of rightWallDeskSeats; trackBy: trackBySeatId"
+                class="seat-btn seat-btn--counter"
+                [class.seat-btn--available]="s.status === 'available'"
+                [class.seat-btn--reserved]="s.status === 'reserved'"
+                [class.seat-btn--selected]="s.status === 'selected'"
+                [disabled]="s.status === 'reserved'"
+                [title]="s.label"
+                (click)="onSeatClick(s)">
+              </button>
+            </div>
+            <div class="wall-desk-shelf"><span class="wall-desk-label">Duvar Kenari</span></div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    </ng-container>
+
+  </main>
+
+  <!-- Floating confirm FAB -->
+  <div class="fab-container" *ngIf="selectedSeat">
+    <div class="fab-card">
+      <div class="fab-card__info">
+        <div class="fab-card__label">Secili Koltuk</div>
+        <div class="fab-card__seat">{{ selectedSeat.label }}</div>
+      </div>
+      <button class="fab-card__confirm" (click)="confirmReservation()">Rezervasyonu Tamamla</button>
+      <button class="fab-card__cancel" (click)="cancelSelection()">x</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Reservation Confirmation Modal ─────────────────────────────── -->
+<div class="confirm-modal-overlay" *ngIf="showConfirmModal" (click)="cancelConfirmModal()">
+  <div class="confirm-modal" (click)="$event.stopPropagation()">
+    <h3 class="confirm-modal__title">Rezervasyonu Onayla</h3>
+    <div class="confirm-modal__body">
+      <div class="confirm-modal__row">
+        <span class="confirm-modal__key">Koltuk</span>
+        <span class="confirm-modal__val">{{ selectedSeat?.label }}</span>
+      </div>
+      <div class="confirm-modal__row">
+        <span class="confirm-modal__key">Kat</span>
+        <span class="confirm-modal__val">{{ activeFloor }}. Kat</span>
+      </div>
+      <div class="confirm-modal__row" *ngIf="!embeddedMode">
+        <span class="confirm-modal__key">Tarih</span>
+        <span class="confirm-modal__val">{{ selectedDate }}</span>
+      </div>
+      <div class="confirm-modal__row" *ngIf="!embeddedMode && selectedStartTime">
+        <span class="confirm-modal__key">Saat</span>
+        <span class="confirm-modal__val">{{ selectedStartTime }} – {{ selectedEndTime }}</span>
+      </div>
+    </div>
+    <div class="confirm-modal__actions">
+      <button class="confirm-modal__btn confirm-modal__btn--confirm" (click)="executeReservation()">
+        <i class="bi bi-check-lg"></i> Onayla
+      </button>
+      <button class="confirm-modal__btn confirm-modal__btn--cancel" (click)="cancelConfirmModal()">
+        Vazgeç
+      </button>
+    </div>
+  </div>
+</div>

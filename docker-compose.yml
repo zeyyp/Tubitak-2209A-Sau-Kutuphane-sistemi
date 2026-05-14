@@ -84,6 +84,7 @@ services:
       - ASPNETCORE_URLS=http://+:5003
       - Turnstile__ReservationServiceBaseUrl=http://api-gateway:5010/
       - Turnstile__IdentityBaseUrl=http://identity-service:5001/api/Auth
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=LibraryReservation;Username=postgres;Password=78
       - RabbitMQ__Host=rabbitmq
       - RabbitMQ__Username=library
       - RabbitMQ__Password=library123
@@ -91,9 +92,14 @@ services:
     ports:
       - "5003:5003"
     depends_on:
-      - reservation-service
-      - identity-service
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      reservation-service:
+        condition: service_started
+      identity-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - library_network
     restart: on-failure:5
@@ -107,11 +113,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5004
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=LibraryReservation;Username=postgres;Password=78
       - OpenAI__ApiKey=${OPENAI_API_KEY}
     ports:
       - "5004:5004"
-    volumes:
-      - feedback_data:/app/App_Data
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - library_network
 

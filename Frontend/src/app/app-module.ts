@@ -1,7 +1,8 @@
 import { NgModule, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { BrowserModule, provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
-import { HttpClientModule } from '@angular/common/http'; // DEPRECATED uyarısını verebilir ama çalışır
+import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthInterceptor } from './services/auth.interceptor';
 
 import { AppRoutingModule } from './app-routing-module';
 import { AppComponent  } from './app';
@@ -10,6 +11,8 @@ import { HomeComponent } from './home/home.component';
 import { TurnstileComponent } from './turnstile/turnstile.component';
 import { LoginComponent } from './login/login.component';
 import { FormsModule } from '@angular/forms';
+import { FloorComponent } from './floor/floor.component';
+import { TableComponent } from './table/table.component';
 
 @NgModule({
   declarations: [
@@ -17,19 +20,21 @@ import { FormsModule } from '@angular/forms';
     ReservationFilterComponent,
     HomeComponent,
     TurnstileComponent,
-    LoginComponent
+    LoginComponent,
+    FloorComponent,
+    TableComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FormsModule,
-    HttpClientModule ,
-
+    FormsModule
   ],
   providers: [
+    provideHttpClient(withInterceptorsFromDi()),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideClientHydration(withEventReplay())
+    provideClientHydration(withEventReplay()),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })

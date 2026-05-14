@@ -42,6 +42,48 @@
       </div>
     </div>
 
+    <!-- Stats Section -->
+    <div class="admin-section">
+      <div class="section-header">
+        <h4><i class="bi bi-bar-chart-line me-2"></i>Rezervasyon İstatistikleri</h4>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div *ngIf="isLoadingStats" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-2 text-muted">İstatistikler yükleniyor...</p>
+          </div>
+          <div *ngIf="!isLoadingStats && !stats" class="text-center py-4">
+            <i class="bi bi-bar-chart display-4 text-muted"></i>
+            <p class="text-muted mt-3">İstatistik verisi alınamadı.</p>
+          </div>
+          <div *ngIf="!isLoadingStats && stats">
+            <div class="row mb-3">
+              <div class="col-sm-4"><strong>Toplam Rezervasyon:</strong> {{ stats.totalReservations }}</div>
+              <div class="col-sm-4"><strong>Katılım Sayısı:</strong> {{ stats.attendedCount }} ({{ stats.attendanceRate }}%)</div>
+              <div class="col-sm-4"><strong>No-Show Sayısı:</strong> {{ stats.noShowCount }} ({{ stats.noShowRate }}%)</div>
+            </div>
+            <div class="row mb-3" *ngIf="stats.byStudentType">
+              <div class="col-12"><strong>Öğrenci Tipine Göre:</strong></div>
+              <div class="col-sm-4" *ngFor="let key of objectKeys(stats.byStudentType)">
+                {{ key }}: <span class="badge bg-secondary">{{ stats.byStudentType[key] }}</span>
+              </div>
+            </div>
+            <div class="row" *ngIf="stats.reservationsByHour && objectKeys(stats.reservationsByHour).length > 0">
+              <div class="col-12 mb-2"><strong>Saate Göre Dağılım:</strong></div>
+              <div class="col-12">
+                <span *ngFor="let h of objectKeys(stats.reservationsByHour)" class="badge bg-primary me-1 mb-1">
+                  {{ h }}:00 → {{ stats.reservationsByHour[h] }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Reservations Section -->
     <div class="admin-section">
       <div class="section-header">
@@ -78,7 +120,8 @@
                   <td><span class="badge bg-primary">{{ res.tableNumber || res.TableNumber }}</span> <small class="text-muted">(Kat: {{ res.floorId || res.FloorId }})</small></td>
                   <td>
                     <span *ngIf="res.isAttended || res.IsAttended" class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Giriş Yapıldı</span>
-                    <span *ngIf="!(res.isAttended || res.IsAttended)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
+                    <span *ngIf="!(res.isAttended || res.IsAttended) && (res.penaltyProcessed || res.PenaltyProcessed)" class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Gelmedi (Cezalı)</span>
+                    <span *ngIf="!(res.isAttended || res.IsAttended) && !(res.penaltyProcessed || res.PenaltyProcessed)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
                   </td>
                 </tr>
               </tbody>

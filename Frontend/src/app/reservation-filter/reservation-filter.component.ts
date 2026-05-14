@@ -3,6 +3,7 @@ import { ReservationService } from '../services/reservation.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs';
+import { FloorStateService } from '../services/floor-state.service';
 
 @Component({
   selector: 'app-reservation-filter',
@@ -15,7 +16,8 @@ export class ReservationFilterComponent {
     date: '',
     startTime: '',
     endTime: '',
-    floorId: 1
+    floorId: 0,
+    block: 'B'
   };
 
   // Tarih kısıtlamaları: sadece bugün ve yarın
@@ -32,11 +34,65 @@ export class ReservationFilterComponent {
   isSubmitting = false;
   showConfirmationModal = false;
   selectedTable: any = null;
+  showFloorMap = false;
 
   // Puan bazlı erişim kontrolü
   accessCheckResult: any = null;
   accessDenied = false;
   checkingAccess = true;
+
+  // --- Zaman dilimi üretimi ---
+  private generateSlots(fromHour: number, fromMin: number, toHour: number, toMin: number): string[] {
+    const slots: string[] = [];
+    let minutes = fromHour * 60 + fromMin;
+    const end = toHour * 60 + toMin;
+    while (minutes <= end) {
+      const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+      const m = (minutes % 60).toString().padStart(2, '0');
+      slots.push(`${h}:${m}`);
+      minutes += 15;
+    }
+    return slots;
+  }
+
+  get startTimeSlots(): string[] {
+    const all = this.generateSlots(8, 0, 22, 45);
+    if (this.filter.date !== this.minDate) return all;
+    // Bugün seçiliyse geçmiş saatleri filtrele
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return all.filter(s => {
+      const [h, m] = s.split(':').map(Number);
+      return h * 60 + m > nowMin;
+    });
+  }
+
+  get endTimeSlots(): string[] {
+    const all = this.generateSlots(8, 15, 23, 0);
+    if (!this.filter.startTime) return all;
+    const [sh, sm] = this.filter.startTime.split(':').map(Number);
+    const startMin = sh * 60 + sm;
+    return all.filter(s => {
+      const [h, m] = s.split(':').map(Number);
+      return h * 60 + m > startMin;
+    });
+  }
+
+  onDateChange() {
+    // Tarih değişince geçersiz kalan saatleri temizle
+    const slots = this.startTimeSlots;
+    if (this.filter.startTime && !slots.includes(this.filter.startTime)) {
+      this.filter.startTime = '';
+      this.filter.endTime = '';
+    }
+    this.cdr.detectChanges();
+  }
+
+  onStartTimeChange() {
+    // Başlangıç saati değişince bitiş saatini sıfırla
+    this.filter.endTime = '';
+    this.cdr.detectChanges();
+  }
 
   isTableAvailable(table: any): boolean {
     if (!table) {
@@ -51,7 +107,8 @@ export class ReservationFilterComponent {
     private reservationService: ReservationService,
     private authService: AuthService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private floorStateService: FloorStateService
   ) {}
 
   ngOnInit() {
@@ -123,15 +180,10 @@ export class ReservationFilterComponent {
         this.accessDenied = false; // Artık hiçbir zaman sistemi bloke etmiyoruz
         this.checkingAccess = false;
 
-        // Yarın için erişim saatini kaydet
+        // Yarın erişimini doğrudan backend'in hesapladığı değerden al
+        this.canAccessTomorrow = result.canAccess === true;
         if (result.allowedTime) {
           this.tomorrowAccessTime = result.allowedTime;
-          // Şu anki saat erişim saatinden büyük mü kontrol et
-          const now = new Date();
-          const [hours, minutes] = result.allowedTime.split(':').map(Number);
-          const accessTime = new Date();
-          accessTime.setHours(hours, minutes, 0, 0);
-          this.canAccessTomorrow = now >= accessTime;
         }
 
         this.cdr.detectChanges();
@@ -153,16 +205,30 @@ export class ReservationFilterComponent {
     this.lastNotificationType = '';
     this.cdr.detectChanges();
 
+    // Backend için floor mapping (0->1, 1->2, 2->3)
+    const backendFloorId = this.filter.floorId + 1;
+
     this.reservationService
-      .getTables(this.filter.date, this.filter.startTime, this.filter.endTime, this.filter.floorId)
+      .getTables(this.filter.date, this.filter.startTime, this.filter.endTime, backendFloorId)
       .subscribe({
         next: (data) => {
           this.tables = data;
+          console.log('Received tables:', data);
+          // Save search state and show embedded floor map
+          this.floorStateService.setFilter({
+            date:      this.filter.date,
+            startTime: this.filter.startTime,
+            endTime:   this.filter.endTime,
+            floorId:   backendFloorId,
+            block:     this.filter.block
+          });
+          this.floorStateService.setTables(data);
+          this.showFloorMap = true;
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('API hatası:', err);
-          alert('Masalar getirilirken hata oluştu.');
+          alert('Masalar getirilirken hata oluştu: ' + (err.error?.message || err.message));
           this.cdr.detectChanges();
         }
       });
@@ -197,7 +263,7 @@ export class ReservationFilterComponent {
     this.cdr.detectChanges();
   }
 
-  getTablesForRow(floorId: number, startNum: number, endNum: number): any[] {
+  getTablesForRow(startNum: number, endNum: number): any[] {
     return this.tables.filter(table => {
       const tableNum = this.extractTableNumber(table.tableNumber || table.TableNumber);
       return tableNum >= startNum && tableNum <= endNum;

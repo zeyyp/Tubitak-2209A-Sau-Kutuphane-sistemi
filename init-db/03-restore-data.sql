@@ -1,7 +1,5 @@
 -- Clear existing data
-DELETE FROM "Reservations";
-DELETE FROM "StudentProfiles";
-DELETE FROM "Tables";
+-- Removed DELETE statements to preserve data across docker restarts
 
 -- Insert Tables
 INSERT INTO "Tables" ("Id", "TableNumber", "FloorId") VALUES
@@ -29,7 +27,8 @@ INSERT INTO "Tables" ("Id", "TableNumber", "FloorId") VALUES
 (22, 'Masa 3-2', 3),
 (23, 'Masa 3-3', 3),
 (24, 'Masa 3-4', 3),
-(25, 'Masa 3-5', 3);
+(25, 'Masa 3-5', 3)
+ON CONFLICT ("Id") DO NOTHING;
 
 -- Insert StudentProfiles
 INSERT INTO "StudentProfiles" ("Id", "StudentNumber", "StudentType", "PenaltyPoints", "BanUntil", "LastNoShowProcessedAt", "BanReason") VALUES
@@ -37,16 +36,27 @@ INSERT INTO "StudentProfiles" ("Id", "StudentNumber", "StudentType", "PenaltyPoi
 (2, '12345', 'Lisans', 0, NULL, NULL, NULL),
 (3, '123456', 'Lisans', 0, NULL, NULL, NULL),
 (4, '777', 'Doktora', 0, NULL, NULL, NULL),
-(5, '1111', 'Lisans', 5, '2025-12-20', '2025-12-11 16:45:00', 'Rezervasyona gelmedi');
+(5, '1111', 'Lisans', 5, '2025-12-20', '2025-12-11 16:45:00', 'Rezervasyona gelmedi')
+ON CONFLICT ("Id") DO NOTHING;
 
 -- Insert sample Reservations
 INSERT INTO "Reservations" ("Id", "TableId", "StudentNumber", "ReservationDate", "StartTime", "EndTime", "IsAttended", "PenaltyProcessed", "StudentType") VALUES
 (1, 9, '12345', '2025-12-11', '15:15:00', '16:22:00', true, false, 'Lisans'),
 (2, 8, '123456', '2025-12-11', '15:26:00', '16:58:00', true, false, 'Lisans'),
 (3, 9, '777', '2025-12-11', '16:28:00', '18:00:00', true, false, 'Doktora'),
-(4, 10, '1111', '2025-12-11', '16:45:00', '17:45:00', false, true, 'Lisans');
+(4, 10, '1111', '2025-12-11', '16:45:00', '17:45:00', false, true, 'Lisans')
+ON CONFLICT ("Id") DO NOTHING;
 
 -- Reset sequences
 SELECT setval('"Tables_Id_seq"', (SELECT MAX("Id") FROM "Tables"));
 SELECT setval('"StudentProfiles_Id_seq"', (SELECT MAX("Id") FROM "StudentProfiles"));
 SELECT setval('"Reservations_Id_seq"', (SELECT MAX("Id") FROM "Reservations"));
+
+-- Create Feedbacks table (used by FeedbackService)
+CREATE TABLE IF NOT EXISTS "Feedbacks" (
+    "Id" SERIAL PRIMARY KEY,
+    "StudentNumber" VARCHAR(20) NOT NULL,
+    "Message" VARCHAR(500) NOT NULL,
+    "Date" TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "IX_Feedbacks_StudentNumber" ON "Feedbacks" ("StudentNumber");
