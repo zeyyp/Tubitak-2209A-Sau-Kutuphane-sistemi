@@ -39,6 +39,9 @@ export class AuthService {
           if (response.academicLevel) {
             localStorage.setItem('academic_level', response.academicLevel);
           }
+          if (response.fullName) {
+            localStorage.setItem('full_name', response.fullName);
+          }
         }
       })
     );
@@ -64,6 +67,7 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_EXPIRY_KEY);
     localStorage.removeItem('user_role');
     localStorage.removeItem('academic_level');
+    localStorage.removeItem('full_name');
   }
 
   getCurrentUser(): string | null {

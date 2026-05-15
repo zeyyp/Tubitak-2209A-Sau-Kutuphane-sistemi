@@ -1,0 +1,231 @@
+<div class="lp-root">
+
+  <!-- ── 1. TOP BANNER ─────────────────────────────────────── -->
+  <div class="top-banner">
+    <span class="tb-text">Aktif Rezervasyon Sistemi</span>
+    <span class="tb-sep">—</span>
+    <span class="tb-live"><span class="live-dot"></span>Şu an canlı</span>
+  </div>
+
+  <!-- ── 2. HERO ────────────────────────────────────────────── -->
+  <section class="hero-section" id="hero">
+    <div class="hero-inner">
+      <h1 class="hero-title">
+        Kütüphane yerini <em class="hero-em">anında</em><br>ayırt et
+      </h1>
+      <p class="hero-sub">
+        Boş koltuklara canlı olarak takip edin, dilediğiniz zaman için uygun zaman ve mekan seçimiyle
+        birkaç saniye içinde rezervasyon yapın. Sakarya Üniversitesi'nde verimli çalışmanın yeni yolu.
+      </p>
+      <div class="hero-ctas">
+        <a routerLink="/signup" class="btn-primary">
+          <i class="bi bi-person-plus-fill me-2"></i>Hemen Kayıt Ol
+        </a>
+        <a routerLink="/login" class="btn-outline">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+        </a>
+      </div>
+      <button class="hero-scroll-link" (click)="scrollTo('how-section')">
+        <i class="bi bi-magic me-1"></i>Nasıl çalışır öğrenmek ister misiniz?
+      </button>
+    </div>
+  </section>
+
+  <!-- ── 3. STATS WIDGET ───────────────────────────────────── -->
+  <section class="stats-section" *ngIf="statsVisible || statsLoading">
+    <div class="stats-card">
+      <div class="stats-header">
+        <span class="stats-label"><i class="bi bi-graph-up-arrow me-2"></i>CANLI DOLULUK DURUMU</span>
+        <span class="stats-live-badge"><span class="live-dot sm"></span>Şu an aktif</span>
+      </div>
+
+      <!-- Skeleton -->
+      <div *ngIf="statsLoading" class="stats-body">
+        <div class="sk-circle"></div>
+        <div class="sk-col">
+          <div class="sk-line w80"></div>
+          <div class="sk-line w50"></div>
+        </div>
+        <div class="sk-col">
+          <div class="sk-line w60"></div>
+          <div class="sk-line w40"></div>
+        </div>
+      </div>
+
+      <!-- Loaded data -->
+      <div *ngIf="!statsLoading" class="stats-body">
+        <!-- Donut chart (pure CSS) -->
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle class="donut-track" cx="50" cy="50" r="38" />
+            <circle class="donut-fill"  cx="50" cy="50" r="38"
+              [style.stroke-dasharray]="(occupancyRate * 2.388) + ' ' + (238.8 - occupancyRate * 2.388)" />
+          </svg>
+          <div class="donut-label">
+            <span class="donut-pct">%{{ occupancyRate }}</span>
+            <span class="donut-sub">Genel Doluluk</span>
+          </div>
+        </div>
+
+        <!-- Available seats -->
+        <div class="stat-col">
+          <span class="stat-col-label"><i class="bi bi-people-fill me-1"></i>Müsait Koltuk</span>
+          <span class="stat-col-num">{{ availableSeats }}</span>
+          <span class="stat-col-sub">Toplam 500 kapasite içerisinden</span>
+        </div>
+
+        <!-- Quietest floor -->
+        <div class="stat-col">
+          <span class="stat-col-label"><i class="bi bi-geo-alt-fill me-1"></i>En Sakin Alan</span>
+          <span class="stat-col-num">{{ quietestFloor }}</span>
+          <span class="stat-col-sub">Sessiz çalışma bölgesi</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. LIBRARY AREAS ──────────────────────────────────── -->
+  <section class="areas-section">
+    <div class="section-inner">
+      <h2 class="section-title">Kütüphane Alanlarımız</h2>
+      <p class="section-sub">İhtiyacınıza uygun çalışma ortamını seçin.</p>
+      <div class="areas-grid">
+
+        <div class="area-card">
+          <div class="area-img floor1">
+            <span class="area-badge">Grup Çalışması</span>
+            <div class="area-icon-wrap"><i class="bi bi-people-fill"></i></div>
+          </div>
+          <div class="area-body">
+            <p class="area-floor">1. Kat</p>
+            <h3 class="area-name">Sosyal Alan</h3>
+            <p class="area-desc">Grup çalışmaları ve tartışma ortamı. Sessizlik kuralı esnetilmiş açık alan.</p>
+          </div>
+        </div>
+
+        <div class="area-card">
+          <div class="area-img floor2">
+            <span class="area-badge">Bireysel Çalışma</span>
+            <div class="area-icon-wrap"><i class="bi bi-journal-bookmark-fill"></i></div>
+          </div>
+          <div class="area-body">
+            <p class="area-floor">2. Kat</p>
+            <h3 class="area-name">Genel Alan</h3>
+            <p class="area-desc">Standart çalışma masaları, geniş yerleşim düzeni ve bol aydınlatma.</p>
+          </div>
+        </div>
+
+        <div class="area-card">
+          <div class="area-img floor3">
+            <span class="area-badge">Yoğun Odak</span>
+            <div class="area-icon-wrap"><i class="bi bi-headphones"></i></div>
+          </div>
+          <div class="area-body">
+            <p class="area-floor">3. Kat</p>
+            <h3 class="area-name">Sessiz Kat</h3>
+            <p class="area-desc">Tam sessizlik, bireysel odaklanma alanı. Sohbet ve telefon görüşmesi yasak.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. ANNOUNCEMENTS + WHY REGISTER ──────────────────── -->
+  <section class="ann-section" id="how-section">
+    <div class="section-inner ann-grid">
+
+      <!-- Left: Announcements -->
+      <div class="ann-left">
+        <div class="ann-header">
+          <h2 class="ann-title"><i class="bi bi-bell-fill me-2 text-accent"></i>Duyurular</h2>
+          <button class="ann-more-link" (click)="scrollTo('faq-section')">Nasıl Çalışır?</button>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-date"><span class="ann-day">12</span><span class="ann-month">MAR</span></div>
+          <div class="ann-body">
+            <p class="ann-ttl">Final Dönemi Çalışma Saatleri Güncellendi</p>
+            <p class="ann-desc">20-30 Mart tarihleri arasında kütüphane 7/24 hizmet verecektir.</p>
+          </div>
+          <i class="bi bi-chevron-right ann-arrow"></i>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-date"><span class="ann-day">08</span><span class="ann-month">MAR</span></div>
+          <div class="ann-body">
+            <p class="ann-ttl">Yeni Grup Çalışma Odaları Hizmete Girdi</p>
+            <p class="ann-desc">3. katta 4 yeni ses yalıtımlı çalışma odası eklendi.</p>
+          </div>
+          <i class="bi bi-chevron-right ann-arrow"></i>
+        </div>
+
+        <div class="ann-item">
+          <div class="ann-date"><span class="ann-day">05</span><span class="ann-month">MAR</span></div>
+          <div class="ann-body">
+            <p class="ann-ttl">Kütüphane Kafe Tadilat Bilgilendirmesi</p>
+            <p class="ann-desc">Zemin kat kafe kısa süre boyunca kapalı olacaktır.</p>
+          </div>
+          <i class="bi bi-chevron-right ann-arrow"></i>
+        </div>
+      </div>
+
+      <!-- Right: Why Register -->
+      <div class="why-card">
+        <h3 class="why-title">Neden Kayıt Olmalıyım?</h3>
+        <ul class="why-list">
+          <li>
+            <i class="bi bi-check-circle-fill why-icon"></i>
+            Koltuk garantisi ile kütüphanede yer arama derdine son.
+          </li>
+          <li>
+            <i class="bi bi-lightning-fill why-icon"></i>
+            Hızlı check-in ile saniyeler içinde masana yerleş.
+          </li>
+          <li>
+            <i class="bi bi-calendar2-check-fill why-icon"></i>
+            Önceden plan yapabilme ve ileri tarihli rezervasyon.
+          </li>
+          <li>
+            <i class="bi bi-wifi why-icon"></i>
+            İnternet olan her yerden doluluk oranlarını canlı izle.
+          </li>
+        </ul>
+        <a routerLink="/signup" class="btn-primary w-full mt-4">Ücretsiz Hesap Oluştur</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── 6. FAQ ─────────────────────────────────────────────── -->
+  <section class="faq-section" id="faq-section">
+    <div class="section-inner faq-inner">
+      <h2 class="section-title">Sıkça Sorulan Sorular</h2>
+      <p class="section-sub">Sistemi kullanmadan önce merak ettiğiniz tüm detaylar.</p>
+
+      <div class="faq-list">
+        <div class="faq-item" *ngFor="let item of faqItems; let i = index"
+             [class.open]="item.open">
+          <button class="faq-q" (click)="toggleFaq(i)">
+            <span>{{ item.q }}</span>
+            <i class="bi" [class.bi-plus]="!item.open" [class.bi-dash]="item.open"></i>
+          </button>
+          <div class="faq-a" *ngIf="item.open">
+            <p>{{ item.a }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 7. FOOTER ─────────────────────────────────────────── -->
+  <footer class="lp-footer">
+    <span class="lp-footer-copy">© 2026 LibReserve. Öğrenciler için geliştirildi.</span>
+    <div class="lp-footer-links">
+      <a href="#">Yardım Merkezi</a>
+      <a href="#">Gizlilik Politikası</a>
+      <a href="#">Kullanım Şartları</a>
+    </div>
+  </footer>
+
+</div>

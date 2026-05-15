@@ -6,7 +6,6 @@ import { AuthInterceptor } from './services/auth.interceptor';
 
 import { AppRoutingModule } from './app-routing-module';
 import { AppComponent  } from './app';
-import { HomeComponent } from './home/home.component';
 import { TurnstileComponent } from './turnstile/turnstile.component';
 import { LoginComponent } from './login/login.component';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +16,6 @@ import { ReservationFilterComponent } from './reservation-filter/reservation-fil
 @NgModule({
   declarations: [
     AppComponent ,
-    HomeComponent,
     TurnstileComponent,
     LoginComponent,
     FloorComponent,

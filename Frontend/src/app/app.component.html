@@ -7,15 +7,7 @@
 
     <nav id="navmenu" class="navmenu">
       <ul>
-        <li><a routerLink="/" class="active">Ana Sayfa<br></a></li>
-        <li class="dropdown">
-          <a href="#"><span>Kütüphanemiz</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-          <ul>
-            <li><a routerLink="/about">Hakkında</a></li>
-            <li><a routerLink="/faq">Sıkça Sorulan Sorular </a></li>
-            <li><a routerLink="/contact">İletişim </a></li>
-          </ul>
-        </li>
+        <li><a [routerLink]="authService.isLoggedIn() ? '/home' : '/'" class="active">Ana Sayfa<br></a></li>
         <li><a routerLink="/floor">Rezervasyon</a></li>
         <li><a routerLink="/turnstile">Turnike Girişi</a></li>
         <li><a routerLink="/feedback">Geri Bildirim</a></li>
@@ -59,10 +51,9 @@
       <div class="col-lg-2 col-6 footer-links">
         <h4>Hızlı Linkler</h4>
         <ul>
-          <li><a routerLink="/">Ana Sayfa</a></li>
-          <li><a routerLink="/about">Hakkımızda</a></li>
-          <li><a routerLink="/faq">SSS</a></li>
-          <li><a routerLink="/contact">İletişim</a></li>
+          <li><a [routerLink]="authService.isLoggedIn() ? '/home' : '/'">Ana Sayfa</a></li>
+          <li><a routerLink="/floor">Rezervasyon</a></li>
+          <li><a routerLink="/feedback">Geri Bildirim</a></li>
         </ul>
       </div>
 
