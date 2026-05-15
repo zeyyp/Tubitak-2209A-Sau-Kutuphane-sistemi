@@ -68,6 +68,8 @@ export class AuthService {
     localStorage.removeItem('user_role');
     localStorage.removeItem('academic_level');
     localStorage.removeItem('full_name');
+    
+    sessionStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
   getCurrentUser(): string | null {
@@ -110,7 +112,7 @@ export class AuthService {
   // Refresh Token'ı döndür
   getRefreshToken(): string | null {
     if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+      return localStorage.getItem(this.REFRESH_TOKEN_KEY) || sessionStorage.getItem(this.REFRESH_TOKEN_KEY);
     }
     return null;
   }

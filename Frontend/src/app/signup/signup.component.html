@@ -1,80 +1,167 @@
-<section id="signup" class="signup section">
-  <div class="container" data-aos="fade-up">
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
-        <div class="card signup-card shadow-lg border-0">
-          <div class="card-body p-5">
-            <div class="text-center mb-4">
-              <div class="signup-icon mb-3">
-                <i class="bi bi-person-plus-fill display-1 text-success"></i>
-              </div>
-              <h2 class="fw-bold">Kayıt Ol</h2>
-              <p class="text-muted">Kütüphane rezervasyon sistemine katılın</p>
-            </div>
-
-            <form (ngSubmit)="onSignup()">
-              <div class="mb-3">
-                <label for="studentNumber" class="form-label fw-bold">
-                  <i class="bi bi-person-badge text-success me-2"></i>Öğrenci Numarası
-                </label>
-                <input type="text" class="form-control" id="studentNumber" [(ngModel)]="user.studentNumber" name="studentNumber" required placeholder="Örn: 123456">
-              </div>
-              <div class="mb-3">
-                <label for="fullName" class="form-label fw-bold">
-                  <i class="bi bi-person-fill text-success me-2"></i>Ad Soyad
-                </label>
-                <input type="text" class="form-control" id="fullName" [(ngModel)]="user.fullName" name="fullName" required placeholder="Ad Soyadınız">
-              </div>
-              <div class="mb-3">
-                <label for="email" class="form-label fw-bold">
-                  <i class="bi bi-envelope-fill text-success me-2"></i>E-posta
-                </label>
-                <input type="email" class="form-control" id="email" [(ngModel)]="user.email" name="email" required placeholder="ornek@sakarya.edu.tr">
-              </div>
-              <div class="mb-3">
-                <label for="academicLevel" class="form-label fw-bold">
-                  <i class="bi bi-mortarboard-fill text-success me-2"></i>Akademik Seviye
-                </label>
-                <select class="form-select" id="academicLevel" [(ngModel)]="user.academicLevel" name="academicLevel">
-                  <option value="Lisans">📚 Lisans</option>
-                  <option value="YüksekLisans">🎓 Yüksek Lisans</option>
-                  <option value="Doktora">🎯 Doktora</option>
-                  <option value="Akademisyen">👨‍🏫 Akademisyen</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="facultyId" class="form-label fw-bold">
-                  <i class="bi bi-building text-success me-2"></i>Fakülte
-                </label>
-                <select class="form-select" id="facultyId" [(ngModel)]="user.facultyId" name="facultyId" required>
-                  <option [value]="0" disabled>Fakülte seçiniz</option>
-                  <option *ngFor="let faculty of faculties" [value]="faculty.id">
-                    {{ faculty.name }}
-                  </option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="department" class="form-label fw-bold">
-                  <i class="bi bi-bookmark-fill text-success me-2"></i>Bölüm
-                </label>
-                <input type="text" class="form-control" id="department" [(ngModel)]="user.department" name="department" required placeholder="Örn: Bilgisayar Mühendisliği">
-              </div>
-              <div class="mb-4">
-                <label for="password" class="form-label fw-bold">
-                  <i class="bi bi-lock-fill text-success me-2"></i>Şifre
-                </label>
-                <input type="password" class="form-control" id="password" [(ngModel)]="user.password" name="password" required placeholder="En az 6 karakter">
-              </div>
-              <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
-                <i class="bi bi-check-circle me-2"></i>Kayıt Ol
-              </button>
-              <div class="text-center">
-                <p class="mb-0">Zaten hesabınız var mı? <a routerLink="/login" class="fw-bold text-decoration-none">Giriş Yap</a></p>
-              </div>
-            </form>
-          </div>
+<div class="signup-page">
+  <!-- Sol Panel -->
+  <div class="left-panel d-none d-md-flex">
+    <div class="panel-content">
+      <div class="logo-container text-center mt-5 mb-4">
+        <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center shadow" style="width: 80px; height: 80px;">
+          <i class="bi bi-book-half text-primary fs-1"></i>
         </div>
+      </div>
+      <h1 class="display-5 fw-bold text-white text-center mb-4">Bilgiye Açılan Kapınız</h1>
+      <p class="text-white text-center fs-6 mb-5 px-4" style="opacity: 0.8;">
+        Sakarya Üniversitesi akademik kaynaklarına tek bir noktadan erişin, rezervasyonlarınızı yönetin ve eğitiminize değer katın.
+      </p>
+      
+      <div class="d-flex justify-content-center gap-3 mb-auto">
+        <div class="badge-custom">
+          ⚡ Hızlı Rezervasyon
+        </div>
+        <div class="badge-custom">
+          🕐 7/24 Erişim
+        </div>
+      </div>
+
+      <div class="footer-text mt-auto text-center text-white-50 small pb-4">
+        © 2026 Sakarya Üniversitesi Kütüphane Hizmetleri
       </div>
     </div>
   </div>
-</section>
+
+  <!-- Sağ Panel -->
+  <div class="right-panel">
+    <div class="form-container">
+      
+      <div *ngIf="showErrorBanner" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="showErrorBanner = false"></button>
+      </div>
+
+      <div class="mb-4 border-bottom pb-4">
+        <h2 class="fw-bold text-dark mb-2">Yeni Hesap Oluştur</h2>
+        <p class="text-muted mb-0">Kütüphane hizmetlerinden yararlanmak için formu doldurun.</p>
+      </div>
+
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Bölüm 1: Kişisel Bilgiler -->
+        <div class="mb-4">
+          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-4 border border-primary border-opacity-25" style="color: #3b82f6 !important; background-color: #eff6ff !important; border-color: #bfdbfe !important;">Kişisel Bilgiler</span>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-dark">👤 Ad Soyad</label>
+              <input type="text" class="form-control" formControlName="fullName" placeholder="Örn: Ahmet Yılmaz">
+              <div *ngIf="signupForm.get('fullName')?.touched && signupForm.get('fullName')?.invalid" class="text-danger small mt-1">
+                Ad soyad en az 3 karakter olmalıdır.
+              </div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold text-dark">🎓 Öğrenci Numarası</label>
+              <input type="text" class="form-control" formControlName="studentNumber" placeholder="Örn: G221210001">
+              <div *ngIf="signupForm.get('studentNumber')?.touched && signupForm.get('studentNumber')?.invalid" class="text-danger small mt-1">
+                Öğrenci numarası zorunludur.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bölüm 2: Akademik Bilgiler -->
+        <div class="mb-4">
+          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-4 border border-primary border-opacity-25" style="color: #3b82f6 !important; background-color: #eff6ff !important; border-color: #bfdbfe !important;">Akademik Bilgiler</span>
+
+          <div class="row mb-3">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label class="form-label fw-semibold text-dark">📚 Akademik Seviye</label>
+              <select class="form-select" formControlName="academicLevel">
+                <option value="" disabled>Seviye seçiniz</option>
+                <option value="Lisans">Lisans</option>
+                <option value="YüksekLisans">Yüksek Lisans</option>
+                <option value="Doktora">Doktora</option>
+                <option value="Akademisyen">Akademisyen</option>
+              </select>
+              <div *ngIf="signupForm.get('academicLevel')?.touched && signupForm.get('academicLevel')?.invalid" class="text-danger small mt-1">
+                Akademik seviye seçiniz.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark">🏛️ Fakülte</label>
+              <select class="form-select" formControlName="facultyId">
+                <option [value]="0" disabled>{{ isLoadingFaculties ? 'Yükleniyor...' : 'Fakülte seçiniz' }}</option>
+                <option *ngFor="let faculty of faculties" [value]="faculty.id">{{ faculty.name }}</option>
+              </select>
+              <div *ngIf="signupForm.get('facultyId')?.touched && signupForm.get('facultyId')?.invalid" class="text-danger small mt-1">
+                Fakülte seçiniz.
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark">Bölüm</label>
+            <input type="text" class="form-control" formControlName="department" placeholder="Önce fakülte seçiniz">
+          </div>
+        </div>
+
+        <!-- Bölüm 3: Hesap Güvenliği -->
+        <div class="mb-4">
+          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-4 border border-primary border-opacity-25" style="color: #3b82f6 !important; background-color: #eff6ff !important; border-color: #bfdbfe !important;">Hesap Güvenliği</span>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold text-dark">✉️ Kurumsal E-posta</label>
+            <input type="email" class="form-control" formControlName="email" placeholder="kullanici@ogr.sakarya.edu.tr">
+            <div class="form-text mt-2" style="font-size: 0.85rem;">
+              <i class="bi bi-info-circle text-dark me-1"></i>Opsiyonel — üniversite e-postanızı kullanmanızı öneririz.
+            </div>
+            <div *ngIf="signupForm.get('email')?.touched && signupForm.get('email')?.invalid" class="text-danger small mt-1">
+              Geçerli bir e-posta adresi giriniz.
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label class="form-label fw-semibold text-dark">🔒 Şifre</label>
+              <div class="input-group">
+                <input [type]="showPassword ? 'text' : 'password'" class="form-control border-end-0" formControlName="password" placeholder="••••••••">
+                <span class="input-group-text bg-white border-start-0 cursor-pointer text-muted" (click)="togglePassword()">
+                  <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </span>
+              </div>
+              <div *ngIf="signupForm.get('password')?.touched && signupForm.get('password')?.invalid" class="text-danger small mt-1">
+                Şifre en az 8 karakter, 1 büyük harf ve 1 rakam içermelidir.
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold text-dark">🔒 Şifre Tekrar</label>
+              <div class="input-group">
+                <input [type]="showPasswordConfirm ? 'text' : 'password'" class="form-control border-end-0" formControlName="passwordConfirm" placeholder="••••••••">
+                <span class="input-group-text bg-white border-start-0 cursor-pointer text-muted" (click)="togglePasswordConfirm()">
+                  <i class="bi" [ngClass]="showPasswordConfirm ? 'bi-eye-slash' : 'bi-eye'"></i>
+                </span>
+              </div>
+              <div *ngIf="signupForm.get('passwordConfirm')?.touched && signupForm.hasError('passwordsMismatch')" class="text-danger small mt-1">
+                Şifreler eşleşmiyor.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100 py-3 mt-2 fw-bold shadow-sm rounded-3" [disabled]="signupForm.invalid || isSubmitting" [ngClass]="{'opacity-50': signupForm.invalid}">
+          <span *ngIf="!isSubmitting">Kayıt Ol</span>
+          <span *ngIf="isSubmitting">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Hesap oluşturuluyor...
+          </span>
+        </button>
+
+        <div class="text-center mt-4">
+          <span class="text-muted">Zaten üye misiniz?</span> <a routerLink="/login" class="text-primary fw-bold text-decoration-none ms-1">Giriş Yap <i class="bi bi-chevron-right small"></i></a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

@@ -7,7 +7,6 @@ import { AuthInterceptor } from './services/auth.interceptor';
 import { AppRoutingModule } from './app-routing-module';
 import { AppComponent  } from './app';
 import { TurnstileComponent } from './turnstile/turnstile.component';
-import { LoginComponent } from './login/login.component';
 import { FormsModule } from '@angular/forms';
 import { FloorComponent } from './floor/floor.component';
 import { TableComponent } from './table/table.component';
@@ -17,7 +16,6 @@ import { ReservationFilterComponent } from './reservation-filter/reservation-fil
   declarations: [
     AppComponent ,
     TurnstileComponent,
-    LoginComponent,
     FloorComponent,
     TableComponent,
     ReservationFilterComponent

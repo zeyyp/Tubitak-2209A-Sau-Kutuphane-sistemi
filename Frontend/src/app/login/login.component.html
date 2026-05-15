@@ -1,41 +1,87 @@
-<section id="login" class="login section">
-  <div class="container" data-aos="fade-up">
-    <div class="row justify-content-center">
-      <div class="col-lg-5">
-        <div class="card login-card shadow-lg border-0">
-          <div class="card-body p-5">
-            <div class="text-center mb-4">
-              <div class="login-icon mb-3">
-                <i class="bi bi-person-circle display-1 text-primary"></i>
-              </div>
-              <h2 class="fw-bold">Hoş Geldiniz</h2>
-              <p class="text-muted">Rezervasyon yapabilmek için giriş yapınız</p>
-            </div>
+<div class="login-page">
+  <div class="login-wrapper">
+    
+    <div class="login-card shadow-lg">
+      <div *ngIf="showErrorBanner" class="alert alert-danger alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="showErrorBanner = false"></button>
+      </div>
 
-            <form (ngSubmit)="onLogin()">
-              <div class="mb-4">
-                <label for="studentNumber" class="form-label fw-bold">
-                  <i class="bi bi-person-badge text-primary me-2"></i>Öğrenci Numarası
-                </label>
-                <input type="text" class="form-control form-control-lg" id="studentNumber" [(ngModel)]="studentNumber" name="studentNumber" required placeholder="Örn: 123456">
-              </div>
-              <div class="mb-4">
-                <label for="password" class="form-label fw-bold">
-                  <i class="bi bi-lock-fill text-primary me-2"></i>Şifre
-                </label>
-                <input type="password" class="form-control form-control-lg" id="password" [(ngModel)]="password" name="password" required placeholder="••••••••">
-              </div>
-              <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" [disabled]="isLoading">
-                <i class="bi bi-box-arrow-in-right me-2"></i>
-                {{ isLoading ? 'Giriş yapılıyor...' : 'Giriş Yap' }}
-              </button>
-              <div class="text-center">
-                <p class="mb-0">Hesabınız yok mu? <a routerLink="/signup" class="fw-bold text-decoration-none">Kayıt Ol</a></p>
-              </div>
-            </form>
+      <div class="text-center mb-4">
+        <div class="logo-container bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
+          <i class="bi bi-book-half text-primary fs-1"></i>
+        </div>
+        <h2 class="fw-bold text-dark">Giriş Yap</h2>
+        <p class="text-muted">Kütüphane hesabınıza erişmek için öğrenci numaranızı kullanın.</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        
+        <!-- Öğrenci Numarası -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold text-dark">Öğrenci Numarası</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-mortarboard"></i></span>
+            <input type="text" class="form-control border-start-0 ps-0" formControlName="studentNumber" placeholder="Örn: 123456">
+          </div>
+          <div class="form-text mt-2" style="font-size: 0.85rem;">
+            <i class="bi bi-info-circle text-primary me-1"></i>Öğrenci numaranızı kullanarak giriş yapın.
+          </div>
+          <div *ngIf="loginForm.get('studentNumber')?.touched && loginForm.get('studentNumber')?.invalid" class="text-danger small mt-1">
+            Öğrenci numarası zorunludur.
           </div>
         </div>
+
+        <!-- Şifre -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label fw-semibold text-dark mb-0">Şifre</label>
+            <a href="#" class="text-primary text-decoration-none small fw-semibold" (click)="$event.preventDefault()">Şifremi Unuttum</a>
+          </div>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+            <input [type]="showPassword ? 'text' : 'password'" class="form-control border-end-0 border-start-0 ps-0" formControlName="password" placeholder="••••••••">
+            <span class="input-group-text bg-white border-start-0 cursor-pointer text-muted" (click)="togglePassword()">
+              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </span>
+          </div>
+          <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="text-danger small mt-1">
+            Şifre zorunludur.
+          </div>
+        </div>
+
+        <!-- Beni Hatırla -->
+        <div class="mb-4 form-check">
+          <input type="checkbox" class="form-check-input border-primary" id="rememberMe" formControlName="rememberMe">
+          <label class="form-check-label text-dark" for="rememberMe">Beni Hatırla</label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100 py-3 mb-4 fw-bold shadow-sm rounded-3 d-flex align-items-center justify-content-center" [disabled]="loginForm.invalid || isLoading" [ngClass]="{'opacity-50': loginForm.invalid}">
+          <span *ngIf="!isLoading">Giriş Yap <i class="bi bi-arrow-right ms-2"></i></span>
+          <span *ngIf="isLoading">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Giriş yapılıyor...
+          </span>
+        </button>
+
+        <div class="text-center mt-2">
+          <span class="text-muted">Hesabınız yok mu?</span> <a routerLink="/signup" class="text-primary fw-bold text-decoration-none ms-1">Hemen Kayıt Ol</a>
+        </div>
+
+      </form>
+    </div>
+    
+    <!-- Footer -->
+    <div class="login-footer text-center mt-5">
+      <div class="text-muted small fw-semibold">© 2026 Sakarya Üniversitesi</div>
+      <div class="text-muted small mb-3">Kütüphane ve Dokümantasyon Daire Başkanlığı</div>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="#" class="text-muted text-decoration-none small hover-primary" (click)="$event.preventDefault()">Yardım</a>
+        <a href="#" class="text-muted text-decoration-none small hover-primary" (click)="$event.preventDefault()">Gizlilik</a>
+        <a href="#" class="text-muted text-decoration-none small hover-primary" (click)="$event.preventDefault()">KVKK</a>
       </div>
     </div>
   </div>
-</section>
+</div>
