@@ -13,6 +13,10 @@ export class AppComponent  {
 
   constructor(public authService: AuthService, private router: Router) {}
 
+  isAdminRoute(): boolean {
+    return this.router.url.startsWith('/admin');
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);

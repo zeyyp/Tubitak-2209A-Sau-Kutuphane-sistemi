@@ -1,29 +1,75 @@
-<section id="turnstile" class="turnstile section">
-  <div class="container" data-aos="fade-up">
-    <div class="section-title">
-      <h2><i class="bi bi-door-open"></i> Turnike Girişi</h2>
-      <p>Kütüphaneye giriş yapmak için öğrenci numaranızı giriniz.</p>
+<div class="ts-page">
+
+  <!-- Simulation Badge -->
+  <div class="sim-banner">
+    <span class="sim-icon">⚙️</span>
+    <span>Simülasyon Modu — Bu arayüz gerçek turnike donanımını simüle etmektedir.</span>
+  </div>
+
+  <div class="ts-content">
+
+    <!-- Header -->
+    <div class="ts-header">
+      <div class="ts-gate-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="42" height="42">
+          <rect x="4" y="4" width="40" height="40" rx="8" fill="rgba(255,255,255,0.15)"/>
+          <path d="M24 12 L24 36" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M14 18 L24 12 L34 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="16" y="22" width="6" height="10" rx="1" fill="white" opacity="0.8"/>
+          <rect x="26" y="22" width="6" height="10" rx="1" fill="white" opacity="0.8"/>
+          <path d="M20 36 L28 36" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 class="ts-title">Kütüphane Turnike Sistemi</h1>
+      <p class="ts-subtitle">Öğrenci numarasını girerek giriş simülasyonu başlatın.</p>
     </div>
 
-    <div class="row justify-content-center">
-      <div class="col-lg-6">
-        <div class="card shadow-lg border-0">
-          <div class="card-body text-center p-5">
-            <div class="mb-4">
-              <i class="bi bi-person-badge display-1 text-primary mb-3"></i>
-              <label for="studentNumber" class="form-label fs-5 fw-bold">Öğrenci Numarası</label>
-              <input type="text" class="form-control form-control-lg text-center fs-4 mt-2" id="studentNumber" [(ngModel)]="studentNumber" (keyup.enter)="onEnter()" placeholder="Örn: 123456" autocomplete="off" autofocus>
-            </div>
-            <button class="btn btn-primary btn-lg w-100 fs-5" (click)="onEnter()" [disabled]="isLoading">
-              <i class="bi bi-box-arrow-in-right"></i> Giriş Yap
-            </button>
+    <!-- Input Panel -->
+    <div class="ts-card">
+      <div class="ts-input-group">
+        <span class="ts-input-icon">🎓</span>
+        <input
+          type="text"
+          class="ts-input"
+          [(ngModel)]="studentNumber"
+          placeholder="Öğrenci numaranızı girin"
+          autocomplete="off"
+          autofocus
+          (keydown.enter)="onEnter()"
+        />
+      </div>
 
-            <div *ngIf="message" class="mt-4 alert" [ngClass]="{'alert-success': isSuccess, 'alert-danger': !isSuccess}">
-              {{ message }}
-            </div>
+      <button
+        class="ts-btn"
+        [disabled]="!studentNumber.trim() || isLoading"
+        (click)="onEnter()"
+      >
+        @if (isLoading) {
+          <span class="ts-spinner"></span>
+          <span>Kontrol ediliyor...</span>
+        } @else {
+          <span>Turnikeden Geç</span>
+          <span class="ts-btn-arrow">→</span>
+        }
+      </button>
+
+      <!-- Result Area -->
+      @if (result) {
+        <div class="ts-result" [class.ts-result--success]="result.type === 'success'"
+             [class.ts-result--rejected]="result.type === 'rejected'"
+             [class.ts-result--error]="result.type === 'error'">
+          <div class="ts-result-icon">
+            @if (result.type === 'success') { ✓ }
+            @else if (result.type === 'rejected') { ✗ }
+            @else { ! }
+          </div>
+          <div class="ts-result-text">
+            <div class="ts-result-title">{{ result.title }}</div>
+            <div class="ts-result-msg">{{ result.message }}</div>
           </div>
         </div>
-      </div>
+      }
     </div>
+
   </div>
-</section>
+</div>

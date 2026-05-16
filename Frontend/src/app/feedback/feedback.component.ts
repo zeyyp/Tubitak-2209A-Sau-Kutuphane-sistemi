@@ -1,123 +1,123 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { FeedbackService } from '../services/feedback.service';
-import { AuthService } from '../services/auth.service';
+import { Component, OnInit, OnDestroy, inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Subscription, catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-feedback',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  template: `
-    <section class="feedback-section">
-      <div class="container mt-5">
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
-            <div class="card feedback-card shadow-lg border-0">
-              <div class="card-body p-5">
-                <div class="text-center mb-4">
-                  <div class="feedback-icon mb-3">
-                    <i class="bi bi-chat-heart-fill display-1 text-info"></i>
-                  </div>
-                  <h2 class="fw-bold">Geri Bildirim</h2>
-                  <p class="text-muted">Görüş ve önerileriniz bizim için çok değerli</p>
-                </div>
-
-                <form (ngSubmit)="onSubmit()">
-                  <div class="mb-4">
-                    <label for="message" class="form-label fw-bold">
-                      <i class="bi bi-pencil-square text-info me-2"></i>Mesajınız
-                    </label>
-                    <textarea
-                      class="form-control form-control-lg"
-                      id="message"
-                      rows="6"
-                      [(ngModel)]="message"
-                      name="message"
-                      required
-                      placeholder="Kütüphane hizmetleri hakkında görüş ve önerilerinizi buraya yazabilirsiniz..."
-                    ></textarea>
-                    <small class="text-muted">
-                      <i class="bi bi-info-circle me-1"></i>
-                      Geri bildiriminiz yöneticiler tarafından incelenecektir
-                    </small>
-                  </div>
-                  <button type="submit" class="btn btn-info btn-lg w-100" [disabled]="isSubmitting">
-                    <i class="bi bi-send-fill me-2"></i>
-                    {{ isSubmitting ? 'Gönderiliyor...' : 'Gönder' }}
-                  </button>
-                </form>
-
-                <div class="mt-4 p-3 bg-light rounded">
-                  <h6 class="fw-bold"><i class="bi bi-lightbulb text-warning me-2"></i>İpuçları</h6>
-                  <ul class="mb-0 small text-muted">
-                    <li>Açık ve net olun</li>
-                    <li>Yaşadığınız sorunu detaylı anlatın</li>
-                    <li>Önerilerinizi belirtin</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  `,
-  styles: [`
-    .feedback-section { min-height: 100vh; padding: 60px 0; background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%); }
-    .feedback-card { border-radius: 20px; }
-    .feedback-icon { animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-    textarea.form-control { border: 2px solid #e0e0e0; border-radius: 10px; }
-    textarea.form-control:focus { border-color: #0dcaf0; box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25); }
-    .btn-info { background: linear-gradient(135deg, #0dcaf0 0%, #0a9bb7 100%); border: none; }
-  `]
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './feedback.component.html',
+  styleUrls: ['./feedback.component.css']
 })
-export class FeedbackComponent {
-  message: string = '';
-  isSubmitting: boolean = false;
+export class FeedbackComponent implements OnInit, OnDestroy {
+  private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID);
 
-  constructor(
-    private feedbackService: FeedbackService,
-    private authService: AuthService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private readonly API_URL = 'http://localhost:5010';
 
-  onSubmit() {
-    const studentNumber = this.authService.getCurrentUser();
-    if (!studentNumber) {
+  feedbackForm!: FormGroup;
+  charCount = 0;
+  isSubmitting = false;
+  isSuccess = false;
+  errorMessage = '';
+
+  private charSub?: Subscription;
+  private errorTimer?: ReturnType<typeof setTimeout>;
+
+  ngOnInit(): void {
+    this.feedbackForm = this.fb.group({
+      message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]]
+    });
+
+    // Karakter sayacı — valueChanges observable
+    this.charSub = this.feedbackForm.get('message')!.valueChanges.subscribe(val => {
+      this.charCount = (val || '').length;
+    });
+
+    // Giriş yapılmamışsa login'e yönlendir
+    if (isPlatformBrowser(this.platformId)) {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        this.router.navigate(['/login']);
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.charSub?.unsubscribe();
+    if (this.errorTimer) clearTimeout(this.errorTimer);
+  }
+
+  isFieldInvalid(field: string): boolean {
+    const ctrl = this.feedbackForm.get(field);
+    return !!(ctrl && ctrl.invalid && ctrl.touched);
+  }
+
+  onSubmit(): void {
+    if (this.feedbackForm.invalid) {
+      this.feedbackForm.markAllAsTouched();
+      return;
+    }
+
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const studentNumber = localStorage.getItem('current_user');
+    const token = localStorage.getItem('access_token');
+
+    if (!studentNumber || !token) {
       this.router.navigate(['/login']);
       return;
     }
-    if (this.authService.isAdmin()) {
-      alert('Yönetici olarak geri bildirim gönderemezsiniz.');
-      return;
-    }
-
-    const feedback = {
-      studentNumber: studentNumber,
-      message: this.message
-    };
 
     this.isSubmitting = true;
+    this.errorMessage = '';
     this.cdr.detectChanges();
 
-    this.feedbackService.submitFeedback(feedback).subscribe({
-      next: () => {
-        alert('Geri bildiriminiz için teşekkürler!');
-        this.message = '';
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+
+    const body = {
+      studentNumber,
+      message: this.feedbackForm.value.message
+    };
+
+    this.http.post(`${this.API_URL}/api/Feedback/Submit`, body, { headers }).pipe(
+      catchError(err => {
+        const msg = err?.error?.message ?? err?.error ?? 'Geri bildirim gönderilirken bir hata oluştu. Lütfen tekrar deneyin.';
+        this.errorMessage = typeof msg === 'string' ? msg : 'Geri bildirim gönderilirken bir hata oluştu. Lütfen tekrar deneyin.';
         this.isSubmitting = false;
         this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error(err);
-        const msg = err?.error?.message ?? err?.error ?? 'Bir hata oluştu. Lütfen tekrar deneyin.';
-        alert(typeof msg === 'string' ? msg : 'Bir hata oluştu. Lütfen tekrar deneyin.');
+
+        // 5 saniye sonra banner kapanır
+        this.errorTimer = setTimeout(() => {
+          this.errorMessage = '';
+          this.cdr.detectChanges();
+        }, 5000);
+
+        return of(null);
+      })
+    ).subscribe(res => {
+      if (res !== null) {
+        this.isSuccess = true;
         this.isSubmitting = false;
         this.cdr.detectChanges();
       }
     });
+  }
+
+  resetForm(): void {
+    this.feedbackForm.reset({ message: '' });
+    this.charCount = 0;
+    this.isSuccess = false;
+    this.errorMessage = '';
+    this.cdr.detectChanges();
   }
 }

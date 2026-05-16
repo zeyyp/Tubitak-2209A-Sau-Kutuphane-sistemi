@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TurnstileComponent } from './turnstile/turnstile.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { ProfileComponent } from './profile/profile.component';
@@ -8,13 +7,15 @@ import { FeedbackComponent } from './feedback/feedback.component';
 
 import { AdminPanelComponent } from './admin-panel/admin-panel.component';
 import { AdminGuard } from './guards/admin.guard';
+import { AuthGuard } from './guards/auth.guard';
+import { LandingGuard } from './guards/landing.guard';
 import { FloorComponent } from './floor/floor.component';
 
 const routes: Routes = [
-  { path: '', loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent) },
-  { path: 'home', loadComponent: () => import('./home/home.component').then(m => m.HomeComponent) },
+  { path: '', loadComponent: () => import('./landing/landing.component').then(m => m.LandingComponent), canActivate: [LandingGuard] },
+  { path: 'home', loadComponent: () => import('./home/home.component').then(m => m.HomeComponent), canActivate: [AuthGuard] },
   { path: 'reservation', redirectTo: 'floor', pathMatch: 'full' },
-  { path: 'turnstile', component: TurnstileComponent },
+  { path: 'turnstile', loadComponent: () => import('./turnstile/turnstile.component').then(m => m.TurnstileComponent) },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'profile', component: ProfileComponent },

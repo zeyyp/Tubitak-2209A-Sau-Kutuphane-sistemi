@@ -1,4 +1,4 @@
-<header id="header" class="header d-flex align-items-center sticky-top">
+<header id="header" class="header d-flex align-items-center sticky-top" *ngIf="!isAdminRoute()">
   <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
     <a routerLink="/" class="logo d-flex align-items-center me-auto">
@@ -26,13 +26,13 @@
   </div>
 </header>
 
-<main class="main">
+<main class="main" [class.main-full]="isAdminRoute()">
   <router-outlet></router-outlet>
 </main>
 
-<div style="height: 250px;"></div>
+<div *ngIf="!isAdminRoute()" style="height: 250px;"></div>
 
-<footer id="footer" class="footer light-background">
+<footer id="footer" class="footer light-background" *ngIf="!isAdminRoute()">
   <div class="container footer-top">
     <div class="row gy-4">
       <div class="col-lg-5 col-md-12 footer-about">

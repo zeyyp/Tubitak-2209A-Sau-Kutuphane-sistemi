@@ -1,50 +1,213 @@
-.profile-avatar {
-  margin-top: -50px;
+.profile-page {
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 70px);
+  padding-bottom: 3rem;
 }
 
-.info-card, .reservations-card, .feedbacks-card {
-  border-radius: 15px;
+/* Skeleton Loaders */
+.skeleton-wrapper {
+  animation: pulse 1.5s infinite ease-in-out;
 }
 
-.info-item {
-  padding: 8px 0;
-  border-bottom: 1px solid #f0f0f0;
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
-.info-item:last-child {
-  border-bottom: none;
+.skeleton-card {
+  background-color: #e9ecef;
+  border-radius: 12px;
 }
 
-.info-item label {
+.skeleton-hero { height: 180px; }
+.skeleton-stat { height: 100px; }
+.skeleton-tabs { height: 300px; }
+
+/* Cards Common */
+.card {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.profile-card {
+  border: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.avatar-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: #6c757d;
-  font-size: 0.9rem;
-  display: block;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 0.95rem;
+}
+
+.opening-time-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border: 1px solid;
+}
+
+/* Stat Cards */
+.stat-card {
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
-.info-item span {
-  font-size: 1rem;
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
-.penalty-card {
-  padding: 15px;
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.text-purple { color: #8b5cf6; }
+.bg-purple-subtle { background-color: #f3e8ff; }
+.border-purple-subtle { border-color: #e9d5ff !important; }
+
+/* Tabs */
+.tabs-card {
+  overflow: hidden;
+}
+
+.profile-tabs {
+  border-bottom: 1px solid #e9ecef;
+  padding: 0 1rem;
+  background-color: #f8f9fa;
+}
+
+.profile-tabs .nav-link {
+  color: #6c757d;
+  font-weight: 600;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 1rem 1.25rem;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+
+.profile-tabs .nav-link:hover {
+  color: #3b82f6;
+}
+
+.profile-tabs .nav-link.active {
+  color: #3b82f6;
+  background: transparent;
+  border-bottom: 2px solid #3b82f6;
+}
+
+.res-icon {
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
-  background: #f8f9fa;
+  background-color: #f0fdf4;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
 }
 
-.penalty-ok {
-  border-left: 4px solid #28a745;
+.btn-cancel {
+  transition: all 0.2s;
 }
 
-.penalty-banned {
-  border-left: 4px solid #dc3545;
-  background: #fff5f5;
+.btn-cancel:hover {
+  background-color: #dc3545;
+  color: white;
 }
 
-.feedback-item {
-  padding: 12px;
-  margin-bottom: 10px;
-  background: #f8f9fa;
+.empty-state i {
+  color: #adb5bd;
+}
+
+/* Forms */
+.form-control, .form-select {
+  border: 1px solid #dee2e6;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
-  border-left: 3px solid #0dcaf0;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+  outline: none;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-outline-primary {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-outline-primary:hover {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Toast override if needed */
+.toast {
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.ban-banner {
+  border: 1px solid #f5c2c7;
+  border-radius: 12px;
 }

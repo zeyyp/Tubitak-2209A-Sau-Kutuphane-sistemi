@@ -1,0 +1,5 @@
+/* When on admin route, remove default main padding so the panel fills the viewport */
+.main-full {
+  padding: 0 !important;
+  margin: 0 !important;
+}

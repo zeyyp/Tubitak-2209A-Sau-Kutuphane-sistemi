@@ -6,8 +6,8 @@ import { AuthInterceptor } from './services/auth.interceptor';
 
 import { AppRoutingModule } from './app-routing-module';
 import { AppComponent  } from './app';
-import { TurnstileComponent } from './turnstile/turnstile.component';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { FloorComponent } from './floor/floor.component';
 import { TableComponent } from './table/table.component';
 import { ReservationFilterComponent } from './reservation-filter/reservation-filter.component';
@@ -15,7 +15,6 @@ import { ReservationFilterComponent } from './reservation-filter/reservation-fil
 @NgModule({
   declarations: [
     AppComponent ,
-    TurnstileComponent,
     FloorComponent,
     TableComponent,
     ReservationFilterComponent

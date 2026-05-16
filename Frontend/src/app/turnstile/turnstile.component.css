@@ -1,7 +1,304 @@
-.turnstile {
-  padding: 80px 0;
-  min-height: 80vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* ═══════════════════════════════════════════════════
+   TURNSTILE COMPONENT — SAÜ Kütüphane Rezervasyon
+   ═══════════════════════════════════════════════════ */
+
+/* Page Shell */
+.ts-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #1a3a5c 0%, #1e3f6e 55%, #16325a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Simulation Banner */
+.sim-banner {
+  width: 100%;
+  background: linear-gradient(90deg, #f59e0b, #f97316);
+  color: #1c1a09;
+  text-align: center;
+  padding: 10px 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.2px;
+}
+.sim-icon { font-size: 1rem; }
+
+/* Content Wrapper */
+.ts-content {
+  width: 100%;
+  max-width: 560px;
+  padding: 40px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Header */
+.ts-header {
+  text-align: center;
+  padding: 12px 0 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.ts-gate-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.ts-title {
+  color: #ffffff;
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+.ts-subtitle {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Card */
+.ts-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Input */
+.ts-input-group {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #dde4ef;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  background: #f8fafd;
+}
+.ts-input-group:focus-within {
+  border-color: #1a73e8;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.12);
+}
+.ts-input-icon {
+  padding: 0 14px;
+  font-size: 1.15rem;
+  color: #5f7188;
+  user-select: none;
+}
+.ts-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 14px 14px 14px 0;
+  font-size: 1rem;
+  color: #1c2b3a;
+  outline: none;
+}
+.ts-input::placeholder { color: #b0bec8; }
+
+/* Button */
+.ts-btn {
+  width: 100%;
+  padding: 14px;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+}
+.ts-btn:hover:not(:disabled) {
+  background: #0d5bca;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(26,115,232,0.4);
+}
+.ts-btn:disabled {
+  background: #93c5fd;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.ts-btn-arrow {
+  font-size: 1.1rem;
+  transition: transform 0.2s;
+}
+.ts-btn:hover:not(:disabled) .ts-btn-arrow { transform: translateX(3px); }
+
+/* Spinner */
+.ts-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ts-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes ts-spin { to { transform: rotate(360deg); } }
+
+/* Result */
+.ts-result {
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  animation: ts-slide-in 0.3s ease;
+  border: 1.5px solid;
+}
+@keyframes ts-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ts-result--success {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+.ts-result--rejected {
+  background: #fff5f5;
+  border-color: #ef4444;
+}
+.ts-result--error {
+  background: #fffbeb;
+  border-color: #f59e0b;
+}
+.ts-result-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.ts-result--success .ts-result-icon { background: #22c55e; color: #fff; }
+.ts-result--rejected .ts-result-icon { background: #ef4444; color: #fff; }
+.ts-result--error    .ts-result-icon { background: #f59e0b; color: #fff; }
+.ts-result-text { display: flex; flex-direction: column; gap: 3px; }
+.ts-result-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1c2b3a;
+}
+.ts-result-msg {
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+/* Logs Card */
+.ts-logs-card { gap: 12px; }
+.ts-logs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ts-logs-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1c2b3a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ts-refresh-btn {
+  background: none;
+  border: 1.5px solid #dde4ef;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #5f7188;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+.ts-refresh-btn:hover:not(:disabled) { border-color: #1a73e8; color: #1a73e8; }
+.ts-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ts-spin { display: inline-block; animation: ts-spin 0.8s linear infinite; }
+
+/* Skeletons */
+.ts-skeletons { display: flex; flex-direction: column; gap: 10px; }
+.ts-skeleton {
+  height: 38px;
+  background: linear-gradient(90deg, #e9ecef 25%, #f4f7fb 50%, #e9ecef 75%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: ts-shimmer 1.4s infinite;
+}
+@keyframes ts-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* Log List */
+.ts-log-list { display: flex; flex-direction: column; }
+.ts-log-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f4f8;
+  font-size: 0.88rem;
+}
+.ts-log-row:last-child { border-bottom: none; }
+.ts-log-status {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.ts-log-ok  { background: #dcfce7; color: #16a34a; }
+.ts-log-fail{ background: #fee2e2; color: #dc2626; }
+.ts-log-student {
+  flex: 1;
+  font-weight: 600;
+  color: #1c2b3a;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.3px;
+}
+.ts-log-date {
+  color: #8fa3b8;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.ts-logs-empty {
+  text-align: center;
+  color: #8fa3b8;
+  font-size: 0.88rem;
+  padding: 20px 0;
 }
 
 .turnstile .section-title h2 {

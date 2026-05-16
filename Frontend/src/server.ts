@@ -42,7 +42,9 @@ app.use((req, res, next) => {
   angularApp
     .handle(req)
     .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
+      response
+        ? writeResponseToNodeResponse(response, res)
+        : res.sendFile(join(browserDistFolder, 'index.csr.html')),
     )
     .catch(next);
 });

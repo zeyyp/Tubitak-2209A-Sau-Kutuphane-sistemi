@@ -1,0 +1,115 @@
+<div class="feedback-page">
+  <div class="feedback-container">
+
+    <!-- Başlık Kartı -->
+    <div class="header-card">
+      <h1 class="page-title">Geri Bildirim Gönder</h1>
+      <p class="page-subtitle">Kütüphane deneyiminizi bizimle paylaşın. Her geri bildirim hizmet kalitemizi artırmamıza yardımcı olur.</p>
+    </div>
+
+    <!-- Bilgi Kartları -->
+    <div class="info-cards">
+      <div class="info-card info-card--blue">
+        <div class="info-card__icon info-card__icon--blue">🤖</div>
+        <h3 class="info-card__title">Yapay Zeka ile Analiz</h3>
+        <p class="info-card__text">
+          Geri bildirimleriniz yapay zeka tarafından analiz edilerek kütüphane yönetimine raporlanmakta
+          ve hizmetlerin iyileştirilmesinde kullanılmaktadır.
+        </p>
+      </div>
+
+      <div class="info-card info-card--purple">
+        <div class="info-card__icon info-card__icon--purple">🔒</div>
+        <h3 class="info-card__title">Gizliliğiniz Korunur</h3>
+        <p class="info-card__text">
+          Geri bildirimleriniz anonim olarak işlenir. Kimliğiniz hiçbir zaman diğer kullanıcılar
+          tarafından görüntülenemez.
+        </p>
+      </div>
+    </div>
+
+    <!-- Başarı Mesajı -->
+    @if (isSuccess) {
+      <div class="success-card">
+        <div class="success-icon">✅</div>
+        <h2 class="success-title">Geri Bildiriminiz Alındı!</h2>
+        <p class="success-text">
+          Değerli görüşleriniz için teşekkür ederiz. Geri bildiriminiz ekibimize iletildi.
+        </p>
+        <button class="btn btn--primary" (click)="resetForm()">
+          ✏️ Yeni Geri Bildirim Gönder
+        </button>
+      </div>
+    }
+
+    <!-- Form Kartı -->
+    @if (!isSuccess) {
+      <div class="form-card">
+        <h2 class="form-card__title">
+          <span class="form-card__title-icon">📝</span>
+          Görüşlerinizi Paylaşın
+        </h2>
+
+        <!-- Hata Banner -->
+        @if (errorMessage) {
+          <div class="error-banner">
+            <span class="error-banner__icon">⚠️</span>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        <form [formGroup]="feedbackForm" (ngSubmit)="onSubmit()">
+          <!-- Textarea -->
+          <div class="field-group">
+            <label class="field-label" for="message">
+              Mesajınız <span class="required">*</span>
+            </label>
+            <div class="textarea-wrapper">
+              <textarea
+                id="message"
+                class="feedback-textarea"
+                [class.is-invalid]="isFieldInvalid('message')"
+                formControlName="message"
+                maxlength="500"
+                rows="6"
+                placeholder="Kütüphane hizmetleri, rezervasyon sistemi veya çalışma alanları hakkındaki düşüncelerinizi yazın..."
+              ></textarea>
+              <div class="char-counter" [class.char-counter--warning]="charCount >= 450" [class.char-counter--danger]="charCount >= 500">
+                {{ charCount }} / 500
+              </div>
+            </div>
+            @if (isFieldInvalid('message')) {
+              <p class="field-error">
+                @if (feedbackForm.get('message')?.errors?.['required']) {
+                  Geri bildirim alanı zorunludur.
+                } @else if (feedbackForm.get('message')?.errors?.['minlength']) {
+                  Geri bildirim en az 10 karakter olmalıdır.
+                }
+              </p>
+            }
+          </div>
+
+          <!-- Butonlar -->
+          <div class="form-actions">
+            <button type="button" class="btn btn--ghost" (click)="resetForm()">
+              🔄 Formu Sıfırla
+            </button>
+            <button
+              type="submit"
+              class="btn btn--primary"
+              [disabled]="feedbackForm.invalid || isSubmitting"
+            >
+              @if (isSubmitting) {
+                <span class="spinner"></span>
+                Gönderiliyor...
+              } @else {
+                Gönder →
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+  </div>
+</div>

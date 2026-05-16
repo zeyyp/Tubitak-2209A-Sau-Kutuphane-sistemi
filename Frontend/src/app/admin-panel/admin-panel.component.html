@@ -1,380 +1,467 @@
-<div class="admin-panel-container">
-  <div class="admin-header">
-    <div class="container-fluid">
-      <div class="row align-items-center">
-        <div class="col">
-          <h2><i class="bi bi-shield-lock-fill me-3"></i>Yönetici Paneli</h2>
-          <p class="text-muted mb-0">Sistem yönetim ve izleme paneli</p>
-        </div>
-      </div>
-    </div>
-  </div>
+﻿<div class="admin-layout">
 
-  <div class="container-fluid mt-4">
-    <!-- Stats Cards -->
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <div class="stat-card stat-primary">
-          <i class="bi bi-calendar-check"></i>
-          <div>
-            <h3>{{ reservations.length }}</h3>
-            <p>Toplam Rezervasyon</p>
-          </div>
-        </div>
+  <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+  <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
       </div>
-      <div class="col-md-4">
-        <div class="stat-card stat-info">
-          <i class="bi bi-chat-dots"></i>
-          <div>
-            <h3>{{ feedbacks.length }}</h3>
-            <p>Geri Bildirim</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="stat-card stat-warning">
-          <i class="bi bi-exclamation-triangle"></i>
-          <div>
-            <h3>{{ penalties.length }}</h3>
-            <p>Ceza Kaydı</p>
-          </div>
-        </div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">SAÜ Kütüphane</span>
+        <span class="sidebar-logo-sub">Yönetici Paneli</span>
       </div>
     </div>
 
-    <!-- Stats Section -->
-    <div class="admin-section">
-      <div class="section-header">
-        <h4><i class="bi bi-bar-chart-line me-2"></i>Rezervasyon İstatistikleri</h4>
+    <nav class="sidebar-nav">
+      <a class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="setTab('dashboard')">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'reservations'" (click)="setTab('reservations')">
+        <span class="nav-icon">📋</span>
+        <span>Tüm Rezervasyonlar</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'penalties'" (click)="setTab('penalties')">
+        <span class="nav-icon">⚠️</span>
+        <span>Kullanıcı Cezaları</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'feedback'" (click)="setTab('feedback')">
+        <span class="nav-icon">💬</span>
+        <span>Geri Bildirimler &amp; AI</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'examweeks'" (click)="setTab('examweeks')">
+        <span class="nav-icon">📅</span>
+        <span>Sınav Haftaları</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'turnstile'" (click)="setTab('turnstile')">
+        <span class="nav-icon">🚪</span>
+        <span>Turnike Logları</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-admin-info">
+        <div class="sidebar-admin-avatar">{{ adminName.charAt(0).toUpperCase() }}</div>
+        <div class="sidebar-admin-details">
+          <span class="sidebar-admin-name">{{ adminName }}</span>
+          <span class="sidebar-admin-role">Yönetici</span>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-body">
-          <div *ngIf="isLoadingStats" class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Yükleniyor...</span>
-            </div>
-            <p class="mt-2 text-muted">İstatistikler yükleniyor...</p>
-          </div>
-          <div *ngIf="!isLoadingStats && !stats" class="text-center py-4">
-            <i class="bi bi-bar-chart display-4 text-muted"></i>
-            <p class="text-muted mt-3">İstatistik verisi alınamadı.</p>
-          </div>
-          <div *ngIf="!isLoadingStats && stats">
-            <div class="row mb-3">
-              <div class="col-sm-4"><strong>Toplam Rezervasyon:</strong> {{ stats.totalReservations }}</div>
-              <div class="col-sm-4"><strong>Katılım Sayısı:</strong> {{ stats.attendedCount }} ({{ stats.attendanceRate }}%)</div>
-              <div class="col-sm-4"><strong>No-Show Sayısı:</strong> {{ stats.noShowCount }} ({{ stats.noShowRate }}%)</div>
-            </div>
-            <div class="row mb-3" *ngIf="stats.byStudentType">
-              <div class="col-12"><strong>Öğrenci Tipine Göre:</strong></div>
-              <div class="col-sm-4" *ngFor="let key of objectKeys(stats.byStudentType)">
-                {{ key }}: <span class="badge bg-secondary">{{ stats.byStudentType[key] }}</span>
+      <button class="btn-logout" (click)="logout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Çıkış Yap
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" [class.active]="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+  <!-- ═══════════════════════ MAIN AREA ═══════════════════════ -->
+  <div class="main-area">
+
+    <header class="topbar">
+      <button class="hamburger" (click)="sidebarOpen = !sidebarOpen" aria-label="Menü">
+        <span></span><span></span><span></span>
+      </button>
+      <h1 class="topbar-title">
+        <ng-container [ngSwitch]="activeTab">
+          <ng-container *ngSwitchCase="'dashboard'">Dashboard</ng-container>
+          <ng-container *ngSwitchCase="'reservations'">Tüm Rezervasyonlar</ng-container>
+          <ng-container *ngSwitchCase="'penalties'">Kullanıcı Cezaları</ng-container>
+          <ng-container *ngSwitchCase="'feedback'">Geri Bildirimler &amp; AI Analizi</ng-container>
+          <ng-container *ngSwitchCase="'examweeks'">Sınav Haftaları</ng-container>
+          <ng-container *ngSwitchCase="'turnstile'">Turnike Logları</ng-container>
+        </ng-container>
+      </h1>
+
+      <!-- Profile dropdown -->
+      <div class="topbar-profile" (click)="profileDropdownOpen = !profileDropdownOpen" (keydown.escape)="profileDropdownOpen = false">
+        <div class="topbar-avatar">{{ adminName.charAt(0).toUpperCase() }}</div>
+        <span class="topbar-name">{{ adminName }}</span>
+        <svg class="topbar-chevron" [class.rotated]="profileDropdownOpen" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+        <div class="profile-dropdown" *ngIf="profileDropdownOpen" (click)="$event.stopPropagation()">
+          <a class="dropdown-item" (click)="goToUserInterface()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            Kullanıcı Arayüzüne Dön
+          </a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item dropdown-item-danger" (click)="logout()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Çıkış Yap
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- TAB 1: DASHBOARD -->
+      <div *ngIf="activeTab === 'dashboard'">
+        <div *ngIf="isLoadingDashboard" class="skeleton-grid">
+          <div class="skeleton skeleton-card-sm"></div>
+          <div class="skeleton skeleton-card-sm"></div>
+          <div class="skeleton skeleton-card-sm"></div>
+          <div class="skeleton skeleton-card-sm"></div>
+        </div>
+        <div *ngIf="!isLoadingDashboard && dashboardError" class="error-state">
+          <span class="error-icon">⚠️</span>
+          <p>Veri yüklenemedi.</p>
+          <button class="btn-primary" (click)="loadDashboard()">Tekrar Dene</button>
+        </div>
+        <ng-container *ngIf="!isLoadingDashboard && !dashboardError">
+          <div class="metric-grid">
+            <div class="metric-card metric-blue">
+              <div class="metric-icon">📋</div>
+              <div class="metric-body">
+                <div class="metric-value">{{ stats?.totalReservations ?? '—' }}</div>
+                <div class="metric-label">Toplam Rezervasyon</div>
               </div>
             </div>
-            <div class="row" *ngIf="stats.reservationsByHour && objectKeys(stats.reservationsByHour).length > 0">
-              <div class="col-12 mb-2"><strong>Saate Göre Dağılım:</strong></div>
-              <div class="col-12">
-                <span *ngFor="let h of objectKeys(stats.reservationsByHour)" class="badge bg-primary me-1 mb-1">
-                  {{ h }}:00 → {{ stats.reservationsByHour[h] }}
-                </span>
+            <div class="metric-card metric-green">
+              <div class="metric-icon">✅</div>
+              <div class="metric-body">
+                <div class="metric-value">%{{ stats?.attendanceRate ?? '—' }}</div>
+                <div class="metric-label">Katılım Oranı</div>
+              </div>
+            </div>
+            <div class="metric-card metric-red">
+              <div class="metric-icon">🚫</div>
+              <div class="metric-body">
+                <div class="metric-value">{{ penalties.length }}</div>
+                <div class="metric-label">Aktif Ban</div>
+              </div>
+            </div>
+            <div class="metric-card metric-orange">
+              <div class="metric-icon">💬</div>
+              <div class="metric-body">
+                <div class="metric-value">{{ feedbacks.length }}</div>
+                <div class="metric-label">Geri Bildirim</div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Reservations Section -->
-    <div class="admin-section">
-      <div class="section-header">
-        <h4><i class="bi bi-calendar-range me-2"></i>Tüm Rezervasyonlar</h4>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <div *ngIf="isLoadingReservations" class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Yükleniyor...</span>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Öğrenci Tipine Göre Dağılım</h3>
+              <div *ngIf="stats?.byStudentType" class="bar-list">
+                <div *ngFor="let key of studentTypeKeys" class="bar-row">
+                  <div class="bar-label">{{ key }}</div>
+                  <div class="bar-track">
+                    <div class="bar-fill" [style.width.%]="getStudentTypePercent(key)" [style.background]="getStudentTypeColor(key)"></div>
+                  </div>
+                  <div class="bar-info">
+                    <span>{{ stats.byStudentType[key] }}</span>
+                    <span class="bar-pct">%{{ getStudentTypePercent(key) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="!stats?.byStudentType" class="empty-inline">Veri yok</div>
             </div>
-            <p class="mt-2 text-muted">Rezervasyonlar yükleniyor...</p>
+            <div class="chart-card">
+              <h3 class="chart-title">Saate Göre Rezervasyon Dağılımı</h3>
+              <div *ngIf="hourKeys.length > 0" class="bar-list bar-list-compact">
+                <div *ngFor="let h of hourKeys" class="bar-row">
+                  <div class="bar-label bar-label-sm">{{ h }}:00</div>
+                  <div class="bar-track">
+                    <div class="bar-fill" [class.bar-fill-peak]="stats.reservationsByHour[h] === maxHourCount" [style.width.%]="getHourPercent(h)" style="background:#2563eb"></div>
+                  </div>
+                  <div class="bar-info">{{ stats.reservationsByHour[h] }}</div>
+                </div>
+              </div>
+              <div *ngIf="hourKeys.length === 0" class="empty-inline">Veri yok</div>
+            </div>
           </div>
-          <div *ngIf="!isLoadingReservations && reservations.length === 0" class="text-center py-4">
-            <i class="bi bi-inbox display-4 text-muted"></i>
-            <p class="text-muted mt-3">Kayıtlı rezervasyon bulunamadı.</p>
+        </ng-container>
+      </div>
+
+      <!-- TAB 2: RESERVATIONS -->
+      <div *ngIf="activeTab === 'reservations'">
+        <div class="filter-bar">
+          <input class="filter-input" type="text" placeholder="Öğrenci numarasına göre ara..." [(ngModel)]="reservationSearch" (ngModelChange)="applyFilters()" />
+          <select class="filter-select" [(ngModel)]="reservationStatusFilter" (ngModelChange)="applyFilters()">
+            <option value="">Tum Durumlar</option>
+            <option value="attended">Katıldı</option>
+            <option value="noshow">Cezalı</option>
+            <option value="pending">Bekliyor</option>
+          </select>
+          <a class="filter-reset" (click)="resetFilters()">Filtreleri Sıfırla</a>
+        </div>
+        <div *ngIf="isLoadingReservations" class="skeleton-rows">
+          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+        </div>
+        <div *ngIf="!isLoadingReservations && reservationsError" class="error-state">
+          <span class="error-icon">⚠️</span>
+          <p>Veri yüklenemedi.</p>
+          <button class="btn-primary" (click)="loadReservations()">Tekrar Dene</button>
+        </div>
+        <ng-container *ngIf="!isLoadingReservations && !reservationsError">
+          <div *ngIf="filteredReservations.length === 0" class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>Henüz rezervasyon bulunmuyor.</p>
           </div>
-          <div *ngIf="!isLoadingReservations && reservations.length > 0" class="table-responsive">
-            <table class="admin-table table table-hover">
+          <div *ngIf="filteredReservations.length > 0" class="table-wrapper">
+            <table class="data-table">
               <thead>
                 <tr>
-                  <th><i class="bi bi-person me-1"></i>Öğrenci No</th>
-                  <th><i class="bi bi-calendar3 me-1"></i>Tarih</th>
-                  <th><i class="bi bi-clock me-1"></i>Saat</th>
-                  <th><i class="bi bi-table me-1"></i>Masa</th>
-                  <th><i class="bi bi-check-circle me-1"></i>Durum</th>
+                  <th>Öğrenci No</th>
+                  <th>Tarih</th>
+                  <th>Saat</th>
+                  <th>Masa / Kat</th>
+                  <th>Durum</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let res of reservations">
-                  <td><span class="badge bg-secondary">{{ res.studentNumber || res.StudentNumber }}</span></td>
-                  <td>{{ res.reservationDate || res.ReservationDate }}</td>
-                  <td>{{ res.startTime || res.StartTime }} - {{ res.endTime || res.EndTime }}</td>
-                  <td><span class="badge bg-primary">{{ res.tableNumber || res.TableNumber }}</span> <small class="text-muted">(Kat: {{ res.floorId || res.FloorId }})</small></td>
+                <tr *ngFor="let r of pagedReservations">
+                  <td><span class="student-badge">{{ r.studentNumber }}</span></td>
+                  <td>{{ formatDate(r.reservationDate) }}</td>
+                  <td>{{ r.startTime }} → {{ r.endTime }}</td>
                   <td>
-                    <span *ngIf="res.isAttended || res.IsAttended" class="badge bg-success"><i class="bi bi-check-lg me-1"></i>Giriş Yapıldı</span>
-                    <span *ngIf="!(res.isAttended || res.IsAttended) && (res.penaltyProcessed || res.PenaltyProcessed)" class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Gelmedi (Cezalı)</span>
-                    <span *ngIf="!(res.isAttended || res.IsAttended) && !(res.penaltyProcessed || res.PenaltyProcessed)" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Bekliyor</span>
+                    <ng-container *ngIf="r.tableId; else noTable">
+                      Masa {{ r.tableId }}<span *ngIf="r.floorId"> · Kat {{ r.floorId }}</span>
+                    </ng-container>
+                    <ng-template #noTable>—</ng-template>
+                  </td>
+                  <td>
+                    <span class="status-badge status-attended" *ngIf="getReservationStatus(r) === 'attended'">Katıldı ✓</span>
+                    <span class="status-badge status-penalty" *ngIf="getReservationStatus(r) === 'penalty'">Cezalı ✗</span>
+                    <span class="status-badge status-pending" *ngIf="getReservationStatus(r) === 'pending'">Bekliyor</span>
                   </td>
                 </tr>
               </tbody>
             </table>
+            <div class="pagination">
+              <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1">← Önceki</button>
+              <span class="page-info">Sayfa {{ currentPage }} / {{ totalPages }}</span>
+              <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Sonraki →</button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- TAB 3: PENALTIES -->
+      <div *ngIf="activeTab === 'penalties'">
+        <div class="section-header-row">
+          <div>
+            <span *ngIf="penalties.length > 0" class="badge-red">{{ penalties.length }} Aktif Ban</span>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- AI Feedback Analysis Section -->
-    <div class="admin-section">
-      <div class="section-header d-flex justify-content-between align-items-center">
-        <h4><i class="bi bi-lightbulb me-2"></i>Geri Bildirim AI Analizi (ChatGPT)</h4>
-        <button class="btn btn-primary" (click)="refreshAIAnalysis()" [disabled]="isLoadingAIAnalysis">
-          <i class="bi bi-arrow-clockwise me-2"></i>
-          {{ isLoadingAIAnalysis ? 'Analiz Yapılıyor...' : 'Analizi Yenile' }}
-        </button>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <div *ngIf="isLoadingAIAnalysis" class="text-center py-4">
-            <div class="spinner-border text-info" role="status">
-              <span class="visually-hidden">Yükleniyor...</span>
-            </div>
-            <p class="mt-2 text-muted">AI analizi yapılıyor...</p>
-          </div>
-
-          <div *ngIf="!isLoadingAIAnalysis && aiAnalysisError" class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ aiAnalysisError }}
-          </div>
-
-          <div *ngIf="!isLoadingAIAnalysis && !aiAnalysisError && !aiAnalysis" class="text-center py-4">
-            <i class="bi bi-chat-square-dots display-4 text-muted"></i>
-            <p class="text-muted mt-3">AI analizi henüz yapılmadı.</p>
-            <p class="text-muted">Analiz yapmak için yukarıdaki "Analizi Yenile" butonuna tıklayın.</p>
-          </div>
-
-          <div *ngIf="!isLoadingAIAnalysis && aiAnalysis" class="ai-analysis-container">
-            <!-- Özet Bilgi Kartları -->
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <div class="stat-card stat-info">
-                  <i class="bi bi-chat-dots"></i>
-                  <div>
-                    <h3>{{ aiAnalysis.totalFeedbacks }}</h3>
-                    <p>Toplam Geri Bildirim</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="stat-card" [ngClass]="{
-                  'stat-success': aiAnalysis.sentiment?.toLowerCase() === 'pozitif',
-                  'stat-warning': aiAnalysis.sentiment?.toLowerCase() === 'nötr',
-                  'stat-danger': aiAnalysis.sentiment?.toLowerCase() === 'negatif'
-                }">
-                  <i class="bi" [ngClass]="{
-                    'bi-emoji-smile': aiAnalysis.sentiment?.toLowerCase() === 'pozitif',
-                    'bi-emoji-neutral': aiAnalysis.sentiment?.toLowerCase() === 'nötr',
-                    'bi-emoji-frown': aiAnalysis.sentiment?.toLowerCase() === 'negatif'
-                  }"></i>
-                  <div>
-                    <h3>{{ aiAnalysis.sentiment || 'Nötr' }}</h3>
-                    <p>Genel Duygu</p>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="stat-card stat-primary">
-                  <i class="bi bi-list-check"></i>
-                  <div>
-                    <h3>{{ aiAnalysis.suggestions?.length || 0 }}</h3>
-                    <p>Öneri Sayısı</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Genel Özet -->
-            <div class="analysis-section">
-              <h5><i class="bi bi-file-text me-2"></i>Genel Özet</h5>
-              <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                {{ aiAnalysis.overallSummary || aiAnalysis.summary || 'Özet bulunamadı.' }}
-              </div>
-            </div>
-
-            <!-- Ana Sorunlar -->
-            <div class="analysis-section" *ngIf="aiAnalysis.keyIssues && aiAnalysis.keyIssues.length > 0">
-              <h5><i class="bi bi-exclamation-triangle me-2"></i>Tespit Edilen Sorunlar</h5>
-              <ul class="issue-list">
-                <li *ngFor="let issue of aiAnalysis.keyIssues">
-                  <i class="bi bi-dash-circle text-danger me-2"></i>{{ issue }}
-                </li>
-              </ul>
-            </div>
-
-            <!-- Öneriler -->
-            <div class="analysis-section" *ngIf="aiAnalysis.suggestions && aiAnalysis.suggestions.length > 0">
-              <h5><i class="bi bi-lightbulb-fill me-2"></i>AI Önerileri</h5>
-              <ul class="suggestion-list">
-                <li *ngFor="let suggestion of aiAnalysis.suggestions">
-                  <i class="bi bi-check-circle text-success me-2"></i>{{ suggestion }}
-                </li>
-              </ul>
-            </div>
-
-            <!-- Konu Frekansı -->
-            <div class="analysis-section" *ngIf="aiAnalysis.topicFrequency && objectKeys(aiAnalysis.topicFrequency).length > 0">
-              <h5><i class="bi bi-bar-chart me-2"></i>En Çok Bahsedilen Konular</h5>
-              <div class="topic-badges">
-                <span *ngFor="let topic of objectKeys(aiAnalysis.topicFrequency)" class="badge bg-secondary me-2 mb-2">
-                  {{ topic }}: <strong>{{ aiAnalysis.topicFrequency[topic] }}</strong>
-                </span>
-              </div>
-            </div>
-          </div>
+        <div *ngIf="isLoadingPenalties" class="skeleton-rows">
+          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
         </div>
-      </div>
-    </div>
-
-    <!-- Penalties Section -->
-    <div class="admin-section">
-      <div class="section-header">
-        <h4><i class="bi bi-exclamation-octagon me-2"></i>Kullanıcı Cezaları</h4>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <div *ngIf="isLoadingPenalties" class="text-center py-4">
-            <div class="spinner-border text-warning" role="status">
-              <span class="visually-hidden">Yükleniyor...</span>
-            </div>
-            <p class="mt-2 text-muted">Ceza kayıtları yükleniyor...</p>
+        <div *ngIf="!isLoadingPenalties && penaltiesError" class="error-state">
+          <span class="error-icon">⚠️</span>
+          <p>Veri yüklenemedi.</p>
+          <button class="btn-primary" (click)="loadPenalties()">Tekrar Dene</button>
+        </div>
+        <ng-container *ngIf="!isLoadingPenalties && !penaltiesError">
+          <div *ngIf="penalties.length === 0" class="empty-state empty-state-green">
+            <div class="empty-icon">✅</div>
+            <p>Şu an aktif ceza kaydı bulunmuyor.</p>
           </div>
-          <div *ngIf="!isLoadingPenalties && penaltiesError" class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle me-2"></i>{{ penaltiesError }}
-          </div>
-          <div *ngIf="!isLoadingPenalties && !penaltiesError && penalties.length === 0" class="text-center py-4">
-            <i class="bi bi-check-circle display-4 text-success"></i>
-            <p class="text-muted mt-3">Ceza kaydı bulunmuyor.</p>
-          </div>
-          <div *ngIf="!isLoadingPenalties && penalties.length > 0" class="table-responsive">
-            <table class="admin-table table table-hover">
+          <div *ngIf="penalties.length > 0" class="table-wrapper">
+            <table class="data-table">
               <thead>
                 <tr>
-                  <th><i class="bi bi-person me-1"></i>Öğrenci No</th>
-                  <th><i class="bi bi-mortarboard me-1"></i>Öğrenci Tipi</th>
-                  <th><i class="bi bi-exclamation-diamond me-1"></i>Ceza Puanı</th>
-                  <th><i class="bi bi-calendar-x me-1"></i>Ban Bitiş Tarihi</th>
-                  <th><i class="bi bi-info-circle me-1"></i>Ceza Nedeni</th>
-                  <th><i class="bi bi-clock-history me-1"></i>Son İşlem</th>
+                  <th>Öğrenci No</th>
+                  <th>Öğrenci Tipi</th>
+                  <th>Ban Bitiş Tarihi</th>
+                  <th>Ceza Nedeni</th>
+                  <th>Son İşlem</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let penalty of penalties" [ngClass]="{'table-danger': penalty.banUntil || penalty.BanUntil}">
-                  <td><span class="badge bg-secondary">{{ penalty.studentNumber || penalty.StudentNumber }}</span></td>
-                  <td>{{ penalty.studentType || penalty.StudentType }}</td>
-                  <td>
-                    <span class="badge" [ngClass]="(penalty.penaltyPoints || penalty.PenaltyPoints) > 0 ? 'bg-danger' : 'bg-success'">
-                      {{ penalty.penaltyPoints || penalty.PenaltyPoints }}
-                    </span>
-                  </td>
-                  <td>
-                    <span *ngIf="penalty.banUntil || penalty.BanUntil" class="text-danger fw-bold">
-                      <i class="bi bi-ban me-1"></i>{{ (penalty.banUntil || penalty.BanUntil) }}
-                    </span>
-                    <span *ngIf="!(penalty.banUntil || penalty.BanUntil)" class="text-muted">-</span>
-                  </td>
-                  <td>
-                    <span *ngIf="penalty.banReason || penalty.BanReason" class="text-danger">{{ (penalty.banReason || penalty.BanReason) }}</span>
-                    <span *ngIf="!(penalty.banReason || penalty.BanReason)" class="text-muted">-</span>
-                  </td>
-                  <td>{{ (penalty.lastNoShowProcessedAt || penalty.LastNoShowProcessedAt) | date:'short' }}</td>
+                <tr *ngFor="let p of penalties" class="row-penalty">
+                  <td><span class="student-badge">{{ p.studentNumber }}</span></td>
+                  <td>{{ p.studentType ?? '—' }}</td>
+                  <td>{{ formatDate(p.bannedUntil ?? p.penaltyEndDate) }}</td>
+                  <td>{{ p.reason ?? p.penaltyReason ?? '—' }}</td>
+                  <td>{{ formatDate(p.updatedAt ?? p.createdAt) }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
+        </ng-container>
       </div>
-    </div>
 
-    <!-- Exam Week Management Section -->
-    <div class="admin-section">
-      <div class="section-header">
-        <h4><i class="bi bi-calendar2-week me-2"></i>Sınav Haftası Yönetimi</h4>
+      <!-- TAB 4: FEEDBACK & AI -->
+      <div *ngIf="activeTab === 'feedback'">
+        <div class="feedback-header-row">
+          <div class="mini-metrics">
+            <div class="mini-metric">
+              <div class="mini-metric-value">{{ feedbacks.length }}</div>
+              <div class="mini-metric-label">Toplam Geri Bildirim</div>
+            </div>
+            <div class="mini-metric" *ngIf="aiAnalysis?.overallSentiment">
+              <div class="mini-metric-value">{{ aiAnalysis.overallSentiment }}</div>
+              <div class="mini-metric-label">Genel Duygu</div>
+            </div>
+            <div class="mini-metric" *ngIf="aiAnalysis?.suggestions?.length">
+              <div class="mini-metric-value">{{ aiAnalysis.suggestions?.length ?? 0 }}</div>
+              <div class="mini-metric-label">Öneri Sayısı</div>
+            </div>
+          </div>
+          <button class="btn-outline" (click)="refreshAnalysis()" [disabled]="isLoadingAI">
+            <span *ngIf="isLoadingAI" class="spinner-sm"></span>
+            <span *ngIf="!isLoadingAI">↻</span>
+            Analizi Yenile
+          </button>
+        </div>
+        <div *ngIf="isLoadingFeedback || isLoadingAI" class="skeleton-rows">
+          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3]"></div>
+        </div>
+        <ng-container *ngIf="!isLoadingFeedback && !isLoadingAI">
+          <div *ngIf="aiError || (!aiAnalysis && !aiSummary)" class="ai-unavailable">
+            <div class="ai-unavailable-icon">🤖</div>
+            <h3>AI Servisi Kullanılamıyor</h3>
+            <p>Şu an AI analiz servisi yanıt vermiyor.</p>
+            <p class="ai-note">OpenAI API anahtarının yapılandırıldığından emin olun ve "Analizi Yenile" butonuna tekrar tıklayın.</p>
+          </div>
+          <ng-container *ngIf="!aiError && (aiAnalysis || aiSummary)">
+            <div class="ai-card" *ngIf="aiSummary?.summary || aiAnalysis?.summary">
+              <h3 class="ai-card-title">📝 Genel Özet</h3>
+              <p class="ai-summary-text">{{ aiSummary?.summary ?? aiAnalysis?.summary }}</p>
+            </div>
+            <div class="ai-card" *ngIf="aiAnalysis?.issues?.length">
+              <h3 class="ai-card-title">🔴 Tespit Edilen Sorunlar</h3>
+              <div class="issue-list">
+                <div *ngFor="let issue of aiAnalysis.issues" class="issue-item issue-red">{{ issue }}</div>
+              </div>
+            </div>
+            <div class="ai-card" *ngIf="aiAnalysis?.suggestions?.length">
+              <h3 class="ai-card-title">🟢 AI Önerileri</h3>
+              <div class="issue-list">
+                <div *ngFor="let s of aiAnalysis.suggestions" class="issue-item issue-green">{{ s }}</div>
+              </div>
+            </div>
+            <div class="ai-card" *ngIf="topicKeys.length > 0">
+              <h3 class="ai-card-title">🏷 En Çok Bahsedilen Konular</h3>
+              <div class="topic-pills">
+                <span *ngFor="let t of topicKeys" class="topic-pill">{{ t }}: {{ aiAnalysis.topicCounts[t] }}</span>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
       </div>
-      <div class="card">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <h5 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Yeni Sınav Haftası Ekle</h5>
-              <form (ngSubmit)="onSetExamWeek()">
-                <div class="mb-3">
-                  <label for="facultyId" class="form-label">Fakülte</label>
-                  <select class="form-select" id="facultyId"
-                          [(ngModel)]="newExamWeek.facultyId" name="facultyId" required>
-                    <option [value]="0" disabled>Fakülte seçiniz</option>
-                    <option *ngFor="let faculty of faculties" [value]="faculty.id">
-                      {{ faculty.name }}
-                    </option>
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label for="examWeekStart" class="form-label">Başlangıç Tarihi</label>
-                  <input type="date" class="form-control" id="examWeekStart"
-                         [(ngModel)]="newExamWeek.examWeekStart" name="examWeekStart" required>
-                </div>
-                <div class="mb-3">
-                  <label for="examWeekEnd" class="form-label">Bitiş Tarihi</label>
-                  <input type="date" class="form-control" id="examWeekEnd"
-                         [(ngModel)]="newExamWeek.examWeekEnd" name="examWeekEnd" required>
-                </div>
-                <div *ngIf="examWeekMessage" class="alert alert-success">
-                  <i class="bi bi-check-circle me-2"></i>{{ examWeekMessage }}
-                </div>
-                <div *ngIf="examWeekError" class="alert alert-danger">
-                  <i class="bi bi-exclamation-triangle me-2"></i>{{ examWeekError }}
-                </div>
-                <button type="submit" class="btn btn-primary" [disabled]="isSavingExamWeek">
-                  <span *ngIf="!isSavingExamWeek"><i class="bi bi-save me-2"></i>Kaydet</span>
-                  <span *ngIf="isSavingExamWeek">
-                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                    Kaydediliyor...
-                  </span>
+
+      <!-- TAB 5: EXAM WEEKS -->
+      <div *ngIf="activeTab === 'examweeks'">
+        <div *ngIf="examWeekToast" class="toast" [class.toast-success]="examWeekToast.type === 'success'" [class.toast-error]="examWeekToast.type === 'error'">
+          {{ examWeekToast.message }}
+        </div>
+        <div *ngIf="isLoadingExamWeeks" class="skeleton-rows">
+          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3]"></div>
+        </div>
+        <div *ngIf="!isLoadingExamWeeks && examWeeksError" class="error-state">
+          <span class="error-icon">⚠️</span>
+          <p>Veri yüklenemedi.</p>
+          <button class="btn-primary" (click)="loadExamWeeks()">Tekrar Dene</button>
+        </div>
+        <ng-container *ngIf="!isLoadingExamWeeks && !examWeeksError">
+          <div class="exam-grid">
+            <div class="exam-form-card">
+              <h3 class="card-section-title">Yeni Sınav Haftası Ekle</h3>
+              <div class="form-group">
+                <label class="form-label">Fakülte</label>
+                <select class="form-control" [(ngModel)]="newExamWeek.facultyId">
+                  <option [value]="0" disabled>Fakülte seçiniz</option>
+                  <option *ngFor="let f of faculties" [value]="f.id">{{ f.name }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Başlangıç Tarihi</label>
+                <input class="form-control" type="date" [(ngModel)]="newExamWeek.examWeekStart" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bitiş Tarihi</label>
+                <input class="form-control" type="date" [(ngModel)]="newExamWeek.examWeekEnd" />
+              </div>
+              <div class="form-actions">
+                <button class="btn-primary" (click)="onSetExamWeek()" [disabled]="isSavingExamWeek">
+                  <span *ngIf="isSavingExamWeek" class="spinner-sm"></span>
+                  Kaydet
                 </button>
-              </form>
+                <button class="btn-outline-gray" (click)="clearExamForm()">Temizle</button>
+              </div>
             </div>
-            <div class="col-md-6">
-              <h5 class="mb-3"><i class="bi bi-list-ul me-2"></i>Mevcut Sınav Haftaları</h5>
-              <div *ngIf="isLoadingExamWeeks" class="text-center py-3">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Yükleniyor...</span>
-                </div>
+            <div>
+              <h3 class="card-section-title">Mevcut Sınav Haftaları</h3>
+              <div *ngIf="examWeeks.length === 0" class="empty-state">
+                <div class="empty-icon">📅</div>
+                <p>Henüz sınav haftası tanımlanmamış.</p>
               </div>
-              <div *ngIf="!isLoadingExamWeeks && examWeeks.length === 0" class="text-center py-3">
-                <i class="bi bi-inbox display-6 text-muted"></i>
-                <p class="text-muted mt-2">Henüz sınav haftası tanımlanmamış.</p>
-              </div>
-              <div *ngIf="!isLoadingExamWeeks && examWeeks.length > 0" class="list-group">
-                <div *ngFor="let week of examWeeks" class="list-group-item">
-                  <div class="d-flex w-100 justify-content-between">
-                    <h6 class="mb-1"><i class="bi bi-mortarboard-fill me-2"></i>{{ week.facultyName }}</h6>
-                    <small class="text-muted">{{ week.studentCount }} öğrenci</small>
-                  </div>
-                  <p class="mb-1">
-                    <i class="bi bi-calendar-event me-1"></i>
-                    <strong>{{ week.examWeekStart }}</strong> -
-                    <strong>{{ week.examWeekEnd }}</strong>
-                  </p>
+              <div *ngFor="let w of examWeeks" class="exam-week-card">
+                <div class="exam-week-header">
+                  <span class="exam-faculty">{{ w.facultyName ?? w.faculty ?? 'Fakulte' }}</span>
+                  <span class="badge-active" *ngIf="isExamWeekActive(w)">Aktif</span>
+                  <span class="badge-past" *ngIf="!isExamWeekActive(w)">Geçmiş</span>
                 </div>
+                <div class="exam-week-dates">{{ formatDate(w.examWeekStart) }} – {{ formatDate(w.examWeekEnd) }}</div>
               </div>
             </div>
           </div>
-        </div>
+        </ng-container>
       </div>
-    </div>
+
+      <!-- TAB 6: TURNSTILE -->
+      <div *ngIf="activeTab === 'turnstile'">
+        <div class="section-header-row">
+          <span></span>
+          <button class="btn-outline" (click)="reloadTurnstile()">↻ Yenile</button>
+        </div>
+        <div *ngIf="isLoadingTurnstile" class="skeleton-rows">
+          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+        </div>
+        <div *ngIf="!isLoadingTurnstile && turnstileError" class="error-state">
+          <span class="error-icon">⚠️</span>
+          <p>Veri yüklenemedi.</p>
+          <button class="btn-primary" (click)="reloadTurnstile()">Tekrar Dene</button>
+        </div>
+        <ng-container *ngIf="!isLoadingTurnstile && !turnstileError">
+          <div *ngIf="turnstileLogs.length === 0" class="empty-state">
+            <div class="empty-icon">🚪</div>
+            <p>Henüz turnike kaydı bulunmuyor.</p>
+          </div>
+          <div *ngIf="turnstileLogs.length > 0" class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Öğrenci No</th>
+                  <th>Giriş Zamanı</th>
+                  <th>Sonuç</th>
+                  <th>Mesaj</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let log of turnstileLogs">
+                  <td><span class="student-badge">{{ log.studentNumber }}</span></td>
+                  <td>{{ formatDateTime(log.entryTime ?? log.timestamp ?? log.createdAt) }}</td>
+                  <td>
+                    <span class="status-badge status-attended" *ngIf="log.isSuccessful || log.success || log.result === 'Success'">Giriş Başarılı ✓</span>
+                    <span class="status-badge status-penalty" *ngIf="!(log.isSuccessful || log.success || log.result === 'Success')">Reddedildi ✗</span>
+                  </td>
+                  <td class="log-message">{{ log.message ?? '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
+      </div>
+
+    </main>
   </div>
 </div>

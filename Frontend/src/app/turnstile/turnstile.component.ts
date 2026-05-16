@@ -1,67 +1,125 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { finalize } from 'rxjs';
-import { ReservationService } from '../services/reservation.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { catchError, of } from 'rxjs';
+
+interface TurnstileResult {
+  type: 'success' | 'rejected' | 'error';
+  title: string;
+  message: string;
+}
+
+interface LogEntry {
+  studentNumber: string;
+  enteredAt: string;
+  success: boolean;
+}
 
 @Component({
   selector: 'app-turnstile',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './turnstile.component.html',
-  styleUrls: ['./turnstile.component.css'],
-  standalone: false
+  styleUrls: ['./turnstile.component.css']
 })
-export class TurnstileComponent implements OnInit {
-  studentNumber: string = '';
-  message: string = '';
-  isSuccess: boolean = false;
-  isLoading: boolean = false;
+export class TurnstileComponent implements OnInit, OnDestroy {
+  private readonly apiBase = 'http://localhost:5010';
 
-  constructor(
-    private reservationService: ReservationService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  studentNumber = '';
+  isLoading = false;
+  result: TurnstileResult | null = null;
+  logs: LogEntry[] = [];
+  logsLoading = false;
+
+  private autoCloseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit(): void {
-    // Her sayfa ziyaretinde state'i temizle
-    this.studentNumber = '';
-    this.message = '';
-    this.isSuccess = false;
-    this.isLoading = false;
+    this.loadLogs();
   }
 
-  onEnter() {
-    if (this.isLoading) {
-      return; // double-click engelle
-    }
+  ngOnDestroy(): void {
+    if (this.autoCloseTimer) clearTimeout(this.autoCloseTimer);
+  }
 
-    if (!this.studentNumber) {
-      alert('Lütfen öğrenci numaranızı giriniz.');
-      return;
-    }
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('accessToken') ?? '';
+    return new HttpHeaders({ Authorization: `Bearer ${token}` });
+  }
 
-    this.message = '';
-    this.isSuccess = false;
+  onEnter(): void {
+    const trimmed = this.studentNumber.trim();
+    if (!trimmed || this.isLoading) return;
+    this.submitEntry(trimmed);
+  }
+
+  private submitEntry(studentNumber: string): void {
+    if (this.autoCloseTimer) clearTimeout(this.autoCloseTimer);
+    this.result = null;
     this.isLoading = true;
-    this.cdr.detectChanges(); // UI'ı hemen güncelle
 
-    this.reservationService
-      .enterTurnstile(this.studentNumber)
-      .pipe(finalize(() => {
+    this.http
+      .post<{ doorOpen: boolean; message: string }>(
+        `${this.apiBase}/api/Turnstile/Enter`,
+        { studentNumber },
+        { headers: this.getHeaders() }
+      )
+      .pipe(
+        catchError(err => {
+          const msg = err?.error?.message ?? 'Sisteme bağlanılamadı. Lütfen tekrar deneyin.';
+          return of({ doorOpen: false, message: msg, _isError: true } as any);
+        })
+      )
+      .subscribe(res => {
         this.isLoading = false;
-        this.cdr.detectChanges(); // Loading bitince UI'ı güncelle
-      }))
-      .subscribe({
-        next: (response) => {
-          this.isSuccess = !!response?.doorOpen;
-          this.message = response?.message || (this.isSuccess ? 'Giriş onaylandı.' : 'Giriş reddedildi.');
-          if (this.isSuccess) {
-            this.studentNumber = '';
-          }
-          this.cdr.detectChanges(); // Sonucu göster
-        },
-        error: (err) => {
-          this.isSuccess = false;
-          this.message = err?.error?.message || 'Servise ulaşılamadı veya giriş başarısız.';
-          this.cdr.detectChanges(); // Hatayı göster
+        const isError = !!(res as any)._isError;
+
+        if (isError) {
+          this.result = { type: 'error', title: 'Bağlantı Hatası', message: res.message };
+          this.scheduleClose(4000);
+        } else if (res.doorOpen) {
+          this.result = { type: 'success', title: 'Giriş Başarılı', message: res.message };
+          this.studentNumber = '';
+          this.scheduleClose(3000);
+        } else {
+          this.result = { type: 'rejected', title: 'Giriş Reddedildi', message: res.message };
+          this.scheduleClose(4000);
         }
+        this.loadLogs();
       });
+  }
+
+  private scheduleClose(ms: number): void {
+    this.autoCloseTimer = setTimeout(() => {
+      this.result = null;
+      this.studentNumber = '';
+    }, ms);
+  }
+
+  loadLogs(): void {
+    this.logsLoading = true;
+    this.http
+      .get<LogEntry[]>(`${this.apiBase}/api/Turnstile/logs?take=10`, {
+        headers: this.getHeaders()
+      })
+      .pipe(catchError(() => of([])))
+      .subscribe(data => {
+        this.logs = data ?? [];
+        this.logsLoading = false;
+      });
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    const day = d.getDate();
+    const months = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+    const mon = months[d.getMonth()];
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${day} ${mon}, ${hh}:${mm}`;
   }
 }
