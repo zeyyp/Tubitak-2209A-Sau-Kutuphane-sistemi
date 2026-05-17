@@ -16,7 +16,7 @@ export class ReservationFilterComponent {
     date: '',
     startTime: '',
     endTime: '',
-    floorId: 0,
+    floorId: 1,
     block: 'B'
   };
 
@@ -205,8 +205,8 @@ export class ReservationFilterComponent {
     this.lastNotificationType = '';
     this.cdr.detectChanges();
 
-    // Backend için floor mapping (0->1, 1->2, 2->3)
-    const backendFloorId = this.filter.floorId + 1;
+    // Backend için floor mapping
+    const backendFloorId = this.filter.floorId;
 
     this.reservationService
       .getTables(this.filter.date, this.filter.startTime, this.filter.endTime, backendFloorId)

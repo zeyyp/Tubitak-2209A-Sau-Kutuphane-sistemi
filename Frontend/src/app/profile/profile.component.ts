@@ -16,7 +16,8 @@ export interface ProfileInfo {
 export interface Reservation {
   id: number;
   tableId: number;
-  floorId: number;
+  tableNumber?: string;
+  floorId: number | null;
   reservationDate: string;
   startTime: string;
   endTime: string;
@@ -265,11 +266,13 @@ export class ProfileComponent implements OnInit {
 
   cancelReservation(id: number) {
     this.cancelingId = id;
+    this.cdr.detectChanges();
     this.http.delete(`http://localhost:5010/api/Reservation/Cancel/${id}`, { headers: this.getHeaders() })
       .pipe(
         finalize(() => {
           this.cancelingId = null;
           this.confirmCancelId = null;
+          this.cdr.detectChanges();
         })
       )
       .subscribe({
@@ -280,9 +283,11 @@ export class ProfileComponent implements OnInit {
             this.allReservations[idx].status = 'Cancelled';
           }
           this.calculateStats();
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Cancel error', err);
+          this.showToast('İptal işlemi başarısız oldu.', 'error');
         }
       });
   }

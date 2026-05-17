@@ -1,34 +1,46 @@
 <div class="feedback-page">
   <div class="feedback-container">
 
-    <!-- Başlık Kartı -->
-    <div class="header-card">
-      <h1 class="page-title">Geri Bildirim Gönder</h1>
-      <p class="page-subtitle">Kütüphane deneyiminizi bizimle paylaşın. Her geri bildirim hizmet kalitemizi artırmamıza yardımcı olur.</p>
+    <!-- Page Header -->
+    <div class="feedback-header">
+      <h1 class="feedback-title">Geri Bildirim Gönder</h1>
+      <p class="feedback-subtitle">Kütüphane deneyiminizi bizimle paylaşın. Her geri bildirim hizmet kalitemizi artırmamıza yardımcı olur.</p>
     </div>
 
-    <!-- Bilgi Kartları -->
+    <!-- Info Cards -->
     <div class="info-cards">
-      <div class="info-card info-card--blue">
-        <div class="info-card__icon info-card__icon--blue">🤖</div>
-        <h3 class="info-card__title">Yapay Zeka ile Analiz</h3>
-        <p class="info-card__text">
-          Geri bildirimleriniz yapay zeka tarafından analiz edilerek kütüphane yönetimine raporlanmakta
-          ve hizmetlerin iyileştirilmesinde kullanılmaktadır.
-        </p>
+      <div class="info-card">
+        <div class="info-card__left">
+          <div class="info-card__icon info-card__icon--blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a5 5 0 0 1 5 5c0 2.5-1.5 4.6-3.7 5.5L12 21l-1.3-8.5C8.5 11.6 7 9.5 7 7a5 5 0 0 1 5-5z"/>
+              <circle cx="12" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+          </div>
+        </div>
+        <div class="info-card__body">
+          <h3 class="info-card__title">Yapay Zeka ile Analiz</h3>
+          <p class="info-card__text">Geri bildirimleriniz yapay zeka tarafından analiz edilerek hizmet kalitemizi artırmada kullanılır.</p>
+        </div>
       </div>
 
-      <div class="info-card info-card--purple">
-        <div class="info-card__icon info-card__icon--purple">🔒</div>
-        <h3 class="info-card__title">Gizliliğiniz Korunur</h3>
-        <p class="info-card__text">
-          Geri bildirimleriniz anonim olarak işlenir. Kimliğiniz hiçbir zaman diğer kullanıcılar
-          tarafından görüntülenemez.
-        </p>
+      <div class="info-card">
+        <div class="info-card__left">
+          <div class="info-card__icon info-card__icon--blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="info-card__body">
+          <h3 class="info-card__title">Gizliliğiniz Korunur</h3>
+          <p class="info-card__text">Geri bildirimleriniz anonim olarak işlenir. Kimliğiniz diğer kullanıcılar tarafından görüntülenemez.</p>
+        </div>
       </div>
     </div>
 
-    <!-- Başarı Mesajı -->
+    <!-- Success State -->
     @if (isSuccess) {
       <div class="success-card">
         <div class="success-icon">✅</div>
@@ -42,15 +54,21 @@
       </div>
     }
 
-    <!-- Form Kartı -->
+    <!-- Form Panel -->
     @if (!isSuccess) {
-      <div class="form-card">
-        <h2 class="form-card__title">
-          <span class="form-card__title-icon">📝</span>
-          Görüşlerinizi Paylaşın
-        </h2>
+      <div class="form-panel">
 
-        <!-- Hata Banner -->
+        <!-- Form Panel Header -->
+        <div class="form-panel__header">
+          <div class="form-panel__header-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <span class="form-panel__header-title">Görüşlerinizi Paylaşın</span>
+        </div>
+
+        <!-- Error Banner -->
         @if (errorMessage) {
           <div class="error-banner">
             <span class="error-banner__icon">⚠️</span>
@@ -89,10 +107,14 @@
             }
           </div>
 
-          <!-- Butonlar -->
+          <!-- Actions -->
           <div class="form-actions">
             <button type="button" class="btn btn--ghost" (click)="resetForm()">
-              🔄 Formu Sıfırla
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+              Formu Sıfırla
             </button>
             <button
               type="submit"
@@ -103,7 +125,11 @@
                 <span class="spinner"></span>
                 Gönderiliyor...
               } @else {
-                Gönder →
+                Gönder
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
               }
             </button>
           </div>

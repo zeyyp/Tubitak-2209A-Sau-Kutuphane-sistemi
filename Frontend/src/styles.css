@@ -9,3 +9,28 @@ html, body {
   overflow-y: auto;
   background: #FFFFFF;
 }
+
+/* Global Button Color Overrides to match Home Page's premium blue (#1a73e8) */
+.btn-primary {
+  background-color: #1a73e8 !important;
+  border-color: #1a73e8 !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #0d5bca !important;
+  border-color: #0d5bca !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-primary {
+  color: #1a73e8 !important;
+  border-color: #1a73e8 !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+  background-color: #1a73e8 !important;
+  border-color: #1a73e8 !important;
+  color: #ffffff !important;
+}

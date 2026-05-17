@@ -132,7 +132,7 @@
                               <i class="bi bi-calendar-event"></i>
                             </div>
                             <div>
-                              <h6 class="mb-1 fw-bold">Masa {{ res.tableId }} <span class="text-muted fw-normal small">({{ floorMap[res.floorId] || res.floorId + '. Kat' }})</span></h6>
+                              <h6 class="mb-1 fw-bold">Masa {{ res.tableNumber || res.tableId }} <span class="text-muted fw-normal small">({{ res.floorId ? (floorMap[res.floorId] || res.floorId + '. Kat') : 'Kat bilgisi yok' }})</span></h6>
                               <div class="text-muted small">
                                 {{ res.reservationDate | date:'dd MMMM yyyy' }}
                                 @if (res.startTime && res.endTime) {
@@ -142,8 +142,6 @@
                             </div>
                           </div>
                           <div class="d-flex flex-column align-items-end gap-2">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Confirmed</span>
-
                             @if (confirmCancelId === res.id) {
                               <div class="d-flex gap-1">
                                 <button class="btn btn-sm btn-danger" (click)="cancelReservation(res.id)" [disabled]="cancelingId === res.id">
@@ -193,7 +191,7 @@
                             <div class="text-muted small">{{ res.startTime }} — {{ res.endTime }}</div>
                           </td>
                           <td>
-                            Masa {{ res.tableId }} <span class="text-muted">({{ floorMap[res.floorId] || res.floorId + '. Kat' }})</span>
+                            Masa {{ res.tableNumber || res.tableId }} <span class="text-muted">({{ res.floorId ? (floorMap[res.floorId] || res.floorId + '. Kat') : 'Kat bilgisi yok' }})</span>
                           </td>
                           <td class="pe-4 text-end">
                             @if (res.isAttended) {

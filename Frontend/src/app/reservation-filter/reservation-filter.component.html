@@ -106,12 +106,6 @@
                   <label class="form-label text-muted small"><i class="bi bi-building"></i> Kat</label>
                   <div class="btn-group w-100" role="group">
                     <button type="button" class="btn"
-                            [class.btn-primary]="filter.floorId === 0"
-                            [class.btn-outline-primary]="filter.floorId !== 0"
-                            (click)="filter.floorId = 0">
-                      Zemin Kat (0)
-                    </button>
-                    <button type="button" class="btn"
                             [class.btn-primary]="filter.floorId === 1"
                             [class.btn-outline-primary]="filter.floorId !== 1"
                             (click)="filter.floorId = 1">

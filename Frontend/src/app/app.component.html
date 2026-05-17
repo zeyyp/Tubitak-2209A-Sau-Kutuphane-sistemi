@@ -19,7 +19,10 @@
     </nav>
 
     <a *ngIf="!authService.isLoggedIn()" class="btn-getstarted" routerLink="/login">Giriş Yap</a>
-    <a *ngIf="authService.isLoggedIn()" class="btn-getstarted" style="background-color: #dc3545; margin-left: 10px; cursor: pointer;" (click)="logout()">Çıkış Yap</a>
+    <a *ngIf="authService.isLoggedIn()" class="btn-logout" (click)="logout()">
+      <i class="bi bi-box-arrow-right"></i>
+      <span>Çıkış Yap</span>
+    </a>
     <!-- Admin Login Shortcut for Demo -->
     <a *ngIf="!authService.isLoggedIn()" class="btn-getstarted" style="background-color: #343a40; margin-left: 10px;" routerLink="/login" [queryParams]="{role: 'admin'}">Yönetici Girişi</a>
 

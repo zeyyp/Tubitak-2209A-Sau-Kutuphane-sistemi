@@ -162,9 +162,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     const byHour: Record<string, number> = stats.reservationsByHour ?? stats.ReservationsByHour ?? {};
     // We use a heuristic: show floor based on overall data
     // Backend doesn't give per-floor data so we show a static label
-    if (this.occupancyRate < 40) return '2. Kat';
-    if (this.occupancyRate < 70) return '1. Kat';
-    return 'Zemin Kat';
+    if (this.occupancyRate < 50) return '2. Kat';
+    return '1. Kat';
   }
 
   cancelActive(): void {
@@ -221,7 +220,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     const r = this.activeReservation;
     if (!r) return '';
     const fid = r.floorId ?? r.FloorId ?? '';
-    const labels: Record<number, string> = { 1: 'Zemin Kat', 2: '1. Kat', 3: '2. Kat' };
+    const labels: Record<number, string> = { 1: '1. Kat', 2: '2. Kat', 3: '3. Kat' };
     return labels[fid] ?? `Kat ${fid}`;
   }
 

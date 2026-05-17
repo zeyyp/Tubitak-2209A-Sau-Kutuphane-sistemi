@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { catchError, of } from 'rxjs';
+import { catchError, of, timeout } from 'rxjs';
 
 interface TurnstileResult {
   type: 'success' | 'rejected' | 'error';
@@ -35,7 +35,11 @@ export class TurnstileComponent implements OnInit, OnDestroy {
 
   private autoCloseTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.loadLogs();
@@ -46,7 +50,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
   }
 
   private getHeaders(): HttpHeaders {
-    const token = localStorage.getItem('accessToken') ?? '';
+    const token = localStorage.getItem('access_token') ?? '';
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
@@ -60,6 +64,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     if (this.autoCloseTimer) clearTimeout(this.autoCloseTimer);
     this.result = null;
     this.isLoading = true;
+    this.cdr.detectChanges();
 
     this.http
       .post<{ doorOpen: boolean; message: string }>(
@@ -68,8 +73,11 @@ export class TurnstileComponent implements OnInit, OnDestroy {
         { headers: this.getHeaders() }
       )
       .pipe(
+        timeout(15000),
         catchError(err => {
-          const msg = err?.error?.message ?? 'Sisteme bağlanılamadı. Lütfen tekrar deneyin.';
+          const msg = err?.name === 'TimeoutError'
+            ? 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.'
+            : (err?.error?.message ?? 'Sisteme bağlanılamadı. Lütfen tekrar deneyin.');
           return of({ doorOpen: false, message: msg, _isError: true } as any);
         })
       )
@@ -88,6 +96,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
           this.result = { type: 'rejected', title: 'Giriş Reddedildi', message: res.message };
           this.scheduleClose(4000);
         }
+        this.cdr.detectChanges();
         this.loadLogs();
       });
   }
@@ -96,6 +105,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
     this.autoCloseTimer = setTimeout(() => {
       this.result = null;
       this.studentNumber = '';
+      this.cdr.detectChanges();
     }, ms);
   }
 
@@ -109,6 +119,7 @@ export class TurnstileComponent implements OnInit, OnDestroy {
       .subscribe(data => {
         this.logs = data ?? [];
         this.logsLoading = false;
+        this.cdr.detectChanges();
       });
   }
 
