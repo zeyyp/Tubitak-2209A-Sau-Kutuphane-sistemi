@@ -34,3 +34,36 @@ html, body {
   border-color: #1a73e8 !important;
   color: #ffffff !important;
 }
+
+/* GÖREV 2: Footer arka planı beyaz */
+footer.footer.light-background {
+  --background-color: #ffffff;
+  background-color: #ffffff;
+  border-top: 1px solid #e9ecef;
+}
+
+/* GÖREV 3: TÜBİTAK logo alanı */
+.footer-tubitak-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  padding: 10px 14px;
+  background: #f4f8ff;
+  border: 1px solid #dde8f7;
+  border-radius: 8px;
+  max-width: 270px;
+}
+
+.footer-tubitak-badge img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer-tubitak-badge span {
+  font-size: 11px;
+  color: #5f7188;
+  line-height: 1.4;
+}

@@ -1,8 +1,17 @@
-<header id="header" class="header d-flex align-items-center sticky-top" *ngIf="!isAdminRoute()">
-  <div class="container-fluid container-xl position-relative d-flex align-items-center">
+<div class="app-container">
+  <header id="header" class="header d-flex align-items-center sticky-top" *ngIf="!isAdminRoute()">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
     <a routerLink="/" class="logo d-flex align-items-center me-auto">
-      <h1 class="sitename">SAÜ Kütüphane</h1>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <img src="assets/sau-amblem.png"
+             style="height: 50px; background: transparent; mix-blend-mode: multiply;"
+             alt="SAÜ Amblemi">
+        <span>
+          <span style="font-weight: 700; color: #1a73e8;">SAÜ</span>
+          <span style="font-weight: 400; color: #1a3a5c;"> Kütüphane</span>
+        </span>
+      </div>
     </a>
 
     <nav id="navmenu" class="navmenu">
@@ -25,59 +34,62 @@
     </a>
 
   </div>
-</header>
+  </header>
 
-<main class="main" [class.main-full]="isAdminRoute()">
-  <router-outlet></router-outlet>
-</main>
+  <main class="main main-content" [class.main-full]="isAdminRoute()">
+    <router-outlet></router-outlet>
+  </main>
 
-<div *ngIf="!isAdminRoute()" style="height: 250px;"></div>
+  <footer id="footer" class="footer light-background" *ngIf="!isAdminRoute()">
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-5 col-md-12 footer-about">
+          <a routerLink="/" class="logo d-flex align-items-center">
+            <span class="sitename">SAÜ Kütüphane</span>
+          </a>
+          <p>Sakarya Üniversitesi Kütüphane ve Dokümantasyon Dairesi Başkanlığı, öğrenci, akademik ve idari personelin eğitim, öğretim ve araştırma programlarını desteklemek amacıyla hizmet vermektedir.</p>
+          <div class="footer-tubitak-badge">
+            <img src="assets/tubitak-logo.png" alt="TÜBİTAK Logosu">
+            <span>TÜBİTAK 2209-A<br>Üniversite Öğrencileri<br>Araştırma Projeleri</span>
+          </div>
+          <div class="social-links d-flex mt-4">
+            <a href="https://twitter.com/kutuphanesau" target="_blank"><i class="bi bi-twitter-x"></i></a>
+            <a href="https://www.instagram.com/kutuphanesau/" target="_blank"><i class="bi bi-instagram"></i></a>
+            <a href="https://www.facebook.com/saumerkezkutuphane/" target="_blank"><i class="bi bi-facebook"></i></a>
+            <a href="https://www.youtube.com/channel/UCG9I_NPDpqig4r-HYLKcZOA" target="_blank"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
 
-<footer id="footer" class="footer light-background" *ngIf="!isAdminRoute()">
-  <div class="container footer-top">
-    <div class="row gy-4">
-      <div class="col-lg-5 col-md-12 footer-about">
-        <a routerLink="/" class="logo d-flex align-items-center">
-          <span class="sitename">SAÜ Kütüphane</span>
-        </a>
-        <p>Sakarya Üniversitesi Kütüphane ve Dokümantasyon Dairesi Başkanlığı, öğrenci, akademik ve idari personelin eğitim, öğretim ve araştırma programlarını desteklemek amacıyla hizmet vermektedir.</p>
-        <div class="social-links d-flex mt-4">
-          <a href="https://twitter.com/kutuphanesau" target="_blank"><i class="bi bi-twitter-x"></i></a>
-          <a href="https://www.instagram.com/kutuphanesau/" target="_blank"><i class="bi bi-instagram"></i></a>
-          <a href="https://www.facebook.com/saumerkezkutuphane/" target="_blank"><i class="bi bi-facebook"></i></a>
-          <a href="https://www.youtube.com/channel/UCG9I_NPDpqig4r-HYLKcZOA" target="_blank"><i class="bi bi-youtube"></i></a>
+        <div class="col-lg-2 col-6 footer-links">
+          <h4>Hızlı Linkler</h4>
+          <ul>
+            <li><a [routerLink]="authService.isLoggedIn() ? '/home' : '/'">Ana Sayfa</a></li>
+            <li><a routerLink="/floor">Rezervasyon</a></li>
+            <li><a routerLink="/feedback">Geri Bildirim</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-6 footer-links">
+          <h4>Hizmetlerimiz</h4>
+          <ul>
+            <li><a routerLink="/floor">Rezervasyon</a></li>
+            <li><a routerLink="/turnstile">Turnike Girişi</a></li>
+            <li><a routerLink="/feedback">Geri Bildirim</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
+          <h4>İletişim</h4>
+          <p>Sakarya Üniversitesi</p>
+          <p>Kütüphane ve Dokümantasyon Dairesi</p>
+          <p>Esentepe Kampüsü, Serdivan/SAKARYA</p>
+          <p class="mt-4"><strong>Tel:</strong> <span>+90 264 295 53 58</span></p>
+          <p><strong>E-posta:</strong> <span>kutuphane&#64;sakarya.edu.tr</span></p>
         </div>
       </div>
-
-      <div class="col-lg-2 col-6 footer-links">
-        <h4>Hızlı Linkler</h4>
-        <ul>
-          <li><a [routerLink]="authService.isLoggedIn() ? '/home' : '/'">Ana Sayfa</a></li>
-          <li><a routerLink="/floor">Rezervasyon</a></li>
-          <li><a routerLink="/feedback">Geri Bildirim</a></li>
-        </ul>
-      </div>
-
-      <div class="col-lg-2 col-6 footer-links">
-        <h4>Hizmetlerimiz</h4>
-        <ul>
-          <li><a routerLink="/floor">Rezervasyon</a></li>
-          <li><a routerLink="/turnstile">Turnike Girişi</a></li>
-          <li><a routerLink="/feedback">Geri Bildirim</a></li>
-        </ul>
-      </div>
-
-      <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
-        <h4>İletişim</h4>
-        <p>Sakarya Üniversitesi</p>
-        <p>Kütüphane ve Dokümantasyon Dairesi</p>
-        <p>Esentepe Kampüsü, Serdivan/SAKARYA</p>
-        <p class="mt-4"><strong>Tel:</strong> <span>+90 264 295 53 58</span></p>
-        <p><strong>E-posta:</strong> <span>kutuphane&#64;sakarya.edu.tr</span></p>
-      </div>
     </div>
-  </div>
-</footer>
+  </footer>
+</div>
 
 <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 <div id="preloader"></div>
