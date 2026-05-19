@@ -79,7 +79,6 @@
                 <option value="Lisans">Lisans</option>
                 <option value="YüksekLisans">Yüksek Lisans</option>
                 <option value="Doktora">Doktora</option>
-                <option value="Akademisyen">Akademisyen</option>
               </select>
               <div *ngIf="signupForm.get('academicLevel')?.touched && signupForm.get('academicLevel')?.invalid" class="text-danger small mt-1">
                 Akademik seviye seçiniz.
@@ -99,8 +98,14 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold text-dark">Bölüm</label>
-            <input type="text" class="form-control" formControlName="department" placeholder="Önce fakülte seçiniz">
+            <label class="form-label fw-semibold text-dark">🏫 Bölüm</label>
+            <select class="form-select" formControlName="department">
+              <option value="" disabled>Önce fakülte seçiniz</option>
+              <option *ngFor="let dept of availableDepartments" [value]="dept">{{ dept }}</option>
+            </select>
+            <div *ngIf="signupForm.get('department')?.touched && signupForm.get('department')?.invalid" class="text-danger small mt-1">
+              Lütfen bölüm seçiniz.
+            </div>
           </div>
         </div>
 

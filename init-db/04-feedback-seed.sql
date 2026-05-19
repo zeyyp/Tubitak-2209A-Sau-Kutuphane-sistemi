@@ -1,0 +1,35 @@
+-- Clear old seed feedbacks to prevent duplication
+DELETE FROM "Feedbacks" WHERE "StudentNumber" LIKE 'test%';
+
+-- Insert 30 Seed Feedbacks with Date field matching database schema
+INSERT INTO "Feedbacks" ("StudentNumber", "Message", "Date") VALUES
+('test001', 'Masalar çok gürültülü, konsantre olamıyorum.', NOW() - INTERVAL '29 days'),
+('test002', 'Rezervasyon sistemi bazen yavaş çalışıyor.', NOW() - INTERVAL '28 days'),
+('test003', 'Kütüphanede yeterli priz yok, bilgisayarım şarj olmuyor.', NOW() - INTERVAL '27 days'),
+('test004', 'Rezervasyon sistemi sayesinde artık yer bulamama sorunu yaşamıyorum.', NOW() - INTERVAL '26 days'),
+('test005', 'Uygulama çok kullanışlı, kolayca rezervasyon yapabiliyorum.', NOW() - INTERVAL '25 days'),
+('test006', 'Akademik öncelik sistemi çok adil buluyorum.', NOW() - INTERVAL '24 days'),
+('test007', 'Mobil uygulama da olsa iyi olurdu.', NOW() - INTERVAL '23 days'),
+('test008', 'Rezervasyon süresi 4 saatten fazla da olabilir.', NOW() - INTERVAL '22 days'),
+('test009', 'Farklı kat seçeneği eklenebilir.', NOW() - INTERVAL '21 days'),
+('test010', 'Masa özelliklerine göre filtreleme olsa güzel olurdu.', NOW() - INTERVAL '20 days'),
+('test011', 'Bildirim sistemi eklenebilir, rezervasyon saatini hatırlatsın.', NOW() - INTERVAL '19 days'),
+('test012', 'Grup çalışma odaları da eklenebilir.', NOW() - INTERVAL '18 days'),
+('test013', 'Artık kütüphaneye gelmeden önce yerim olduğunu biliyorum, harika.', NOW() - INTERVAL '17 days'),
+('test014', 'Turnike sistemi giriş çıkışı çok hızlandırdı.', NOW() - INTERVAL '16 days'),
+('test015', 'Arayüz çok sade ve anlaşılır.', NOW() - INTERVAL '15 days'),
+('test016', 'Klima çok fazla açık, üşüyoruz.', NOW() - INTERVAL '14 days'),
+('test017', 'Bazı masalar sallanıyor, değiştirilmesi lazım.', NOW() - INTERVAL '13 days'),
+('test018', 'Rezervasyon iptal etmek çok karmaşık.', NOW() - INTERVAL '12 days'),
+('test019', 'Giriş turnikesi bazen okutmuyor.', NOW() - INTERVAL '11 days'),
+('test020', 'Kütüphane çok erken kapanıyor.', NOW() - INTERVAL '10 days'),
+('test021', 'Temizlik yetersiz, masalar kirli geliyor.', NOW() - INTERVAL '9 days'),
+('test022', 'Wi-Fi bağlantısı zayıf.', NOW() - INTERVAL '8 days'),
+('test023', 'Sınav döneminde öncelik verilmesi çok mantıklı bir uygulama.', NOW() - INTERVAL '7 days'),
+('test024', 'Sistem çok stabil çalışıyor, hiç sorun yaşamadım.', NOW() - INTERVAL '6 days'),
+('test025', 'Önceki kaosa göre çok büyük gelişme.', NOW() - INTERVAL '5 days'),
+('test026', 'Geri bildirim gönderebilmek güzel, sesimiz duyuluyor.', NOW() - INTERVAL '4 days'),
+('test027', 'Farklı dil seçeneği olsa iyi olurdu.', NOW() - INTERVAL '3 days'),
+('test028', 'Rezervasyon geçmişini görmek istiyorum.', NOW() - INTERVAL '2 days'),
+('test029', 'Kütüphane haritası üzerinden masa seçimi yapılabilir.', NOW() - INTERVAL '1 days'),
+('test030', 'Arkadaşlarla aynı bölge için ortak rezervasyon yapılabilse iyi olur.', NOW() - INTERVAL '0 days');

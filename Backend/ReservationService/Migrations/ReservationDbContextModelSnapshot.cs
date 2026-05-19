@@ -50,7 +50,7 @@ namespace ReservationService.Migrations
                     b.HasIndex("FacultyId")
                         .IsUnique();
 
-                    b.ToTable("ExamSchedules");
+                    b.ToTable("ExamSchedules", (string)null);
                 });
 
             modelBuilder.Entity("ReservationService.Data.Faculty", b =>
@@ -70,7 +70,7 @@ namespace ReservationService.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Faculties");
+                    b.ToTable("Faculties", (string)null);
                 });
 
             modelBuilder.Entity("ReservationService.Data.Reservation", b =>
@@ -115,7 +115,7 @@ namespace ReservationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Reservations");
+                    b.ToTable("Reservations", (string)null);
                 });
 
             modelBuilder.Entity("ReservationService.Data.StudentProfile", b =>
@@ -156,7 +156,7 @@ namespace ReservationService.Migrations
                     b.HasIndex("StudentNumber")
                         .IsUnique();
 
-                    b.ToTable("StudentProfiles");
+                    b.ToTable("StudentProfiles", (string)null);
                 });
 
             modelBuilder.Entity("ReservationService.Data.Table", b =>
@@ -176,7 +176,7 @@ namespace ReservationService.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tables");
+                    b.ToTable("Tables", (string)null);
                 });
 
             modelBuilder.Entity("ReservationService.Data.ExamSchedule", b =>

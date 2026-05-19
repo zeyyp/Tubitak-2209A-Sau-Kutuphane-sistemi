@@ -17,6 +17,10 @@ export class AppComponent  {
     return this.router.url.startsWith('/admin');
   }
 
+  isLoginPage(): boolean {
+    return this.router.url.startsWith('/login');
+  }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);

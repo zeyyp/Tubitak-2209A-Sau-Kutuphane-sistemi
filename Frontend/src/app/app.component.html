@@ -7,24 +7,22 @@
 
     <nav id="navmenu" class="navmenu">
       <ul>
-        <li><a [routerLink]="authService.isLoggedIn() ? '/home' : '/'" class="active">Ana Sayfa<br></a></li>
-        <li><a routerLink="/floor">Rezervasyon</a></li>
-        <li><a routerLink="/turnstile">Turnike Girişi</a></li>
-        <li><a routerLink="/feedback">Geri Bildirim</a></li>
+        <li><a [routerLink]="authService.isLoggedIn() ? '/home' : '/'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Ana Sayfa<br></a></li>
+        <li><a routerLink="/floor" routerLinkActive="active">Rezervasyon</a></li>
+        <li><a routerLink="/turnstile" routerLinkActive="active">Turnike Girişi</a></li>
+        <li><a routerLink="/feedback" routerLinkActive="active">Geri Bildirim</a></li>
         <!-- Admin panel is now at /admin and handled by AdminPanelComponent -->
-        <li *ngIf="authService.isAdmin()"><a routerLink="/admin">Yönetici Paneli</a></li>
-        <li *ngIf="authService.isLoggedIn()"><a routerLink="/profile">Profilim</a></li>
+        <li *ngIf="authService.isAdmin()"><a routerLink="/admin" routerLinkActive="active">Yönetici Paneli</a></li>
+        <li *ngIf="authService.isLoggedIn()"><a routerLink="/profile" routerLinkActive="active">Profilim</a></li>
       </ul>
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
     </nav>
 
-    <a *ngIf="!authService.isLoggedIn()" class="btn-getstarted" routerLink="/login">Giriş Yap</a>
+    <a *ngIf="!authService.isLoggedIn() && !isLoginPage()" class="btn-getstarted" routerLink="/login">Giriş Yap</a>
     <a *ngIf="authService.isLoggedIn()" class="btn-logout" (click)="logout()">
       <i class="bi bi-box-arrow-right"></i>
       <span>Çıkış Yap</span>
     </a>
-    <!-- Admin Login Shortcut for Demo -->
-    <a *ngIf="!authService.isLoggedIn()" class="btn-getstarted" style="background-color: #343a40; margin-left: 10px;" routerLink="/login" [queryParams]="{role: 'admin'}">Yönetici Girişi</a>
 
   </div>
 </header>

@@ -315,6 +315,24 @@ namespace ReservationService.Controllers
                 });
             }
 
+            // Aynı öğrenci, aynı masa, aynı gün — arka arkaya rezervasyon kontrolü
+            var hasConsecutiveBooking = await _context.Reservations
+                .AnyAsync(r =>
+                    r.StudentNumber == request.StudentNumber &&
+                    r.TableId == request.TableId &&
+                    r.ReservationDate == rDate &&
+                    r.Id != 0 && // yeni kayıt
+                    (r.EndTime == rStart || r.StartTime == rEnd)
+                );
+
+            if (hasConsecutiveBooking)
+            {
+                return BadRequest(new
+                {
+                    message = "Aynı masaya arka arkaya rezervasyon yapamazsınız. Lütfen farklı bir masa seçin."
+                });
+            }
+
             var isOccupied = await _context.Reservations.AnyAsync(r =>
                 r.TableId == request.TableId &&
                 r.SeatIndex == request.SeatIndex &&
@@ -444,14 +462,36 @@ namespace ReservationService.Controllers
         [HttpGet("Stats")]
         public async Task<IActionResult> GetStats()
         {
-            var reservations = await _context.Reservations.ToListAsync();
+            var thirtyDaysAgo = DateOnly.FromDateTime(DateTime.Today.AddDays(-30));
+            var reservations = await _context.Reservations
+                .Where(r => r.ReservationDate >= thirtyDaysAgo)
+                .ToListAsync();
+
             var total = reservations.Count;
             var attended = reservations.Count(r => r.IsAttended);
             var noShow = reservations.Count(r => r.PenaltyProcessed && !r.IsAttended);
 
             var byType = reservations
                 .GroupBy(r => r.StudentType ?? "Bilinmiyor")
-                .ToDictionary(g => g.Key, g => g.Count());
+                .ToDictionary(g => g.Key, g => {
+                    var count = g.Count();
+                    var typeAttended = g.Count(r => r.IsAttended);
+                    var rate = count > 0 ? Math.Round((double)typeAttended / count * 100, 1) : 0.0;
+                    var avgHours = g.Any()
+                        ? g.Average(r => {
+                            if (r.CreatedAt < new DateTime(2020, 1, 1)) return 0.0;
+                            var reservationStart = r.ReservationDate.ToDateTime(r.StartTime);
+                            var createdAtLocal = r.CreatedAt.ToLocalTime();
+                            var hours = (reservationStart - createdAtLocal).TotalHours;
+                            return hours > 0 ? hours : 0.0;
+                        })
+                        : 0.0;
+                    return new {
+                        count = count,
+                        attendanceRate = rate,
+                        avgHoursBefore = Math.Round(avgHours, 1)
+                    };
+                });
 
             var byHour = reservations
                 .GroupBy(r => r.StartTime.Hour)
@@ -737,10 +777,49 @@ namespace ReservationService.Controllers
                 PenaltyPoints = 0,
                 BanUntil = profile.BanUntil?.ToString("yyyy-MM-dd"),
                 BanReason = profile.BanReason,
-                LastNoShowProcessedAt = profile.LastNoShowProcessedAt
+                LastNoShowProcessedAt = profile.LastNoShowProcessedAt,
+                FacultyId = profile.FacultyId,
+                Department = profile.Department
             };
 
             return Ok(response);
+        }
+
+        public class UpdateProfileRequest
+        {
+            public string? BanUntil { get; set; }
+            public string? BanReason { get; set; }
+        }
+
+        [HttpPut("Profile/{studentNumber}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile(string studentNumber, [FromBody] UpdateProfileRequest request)
+        {
+            if (!IsAdmin)
+            {
+                return Forbid("Sadece yöneticiler profil/ceza güncellemesi yapabilir.");
+            }
+
+            var profile = await _context.StudentProfiles.FirstOrDefaultAsync(p => p.StudentNumber == studentNumber.Trim());
+            if (profile == null)
+            {
+                return NotFound(new { message = "Öğrenci bulunamadı." });
+            }
+
+            if (request.BanUntil == null)
+            {
+                profile.BanUntil = null;
+            }
+            else if (DateOnly.TryParse(request.BanUntil, out var parsedDate))
+            {
+                profile.BanUntil = parsedDate;
+            }
+
+            profile.BanReason = request.BanReason;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Öğrenci profili başarıyla güncellendi." });
         }
 
         [HttpGet("Penalties")]
@@ -1113,6 +1192,8 @@ namespace ReservationService.Controllers
         public string? BanUntil { get; set; }
         public string? BanReason { get; set; }
         public DateTime? LastNoShowProcessedAt { get; set; }
+        public int? FacultyId { get; set; }
+        public string? Department { get; set; }
     }
 
     public class SetExamWeekRequest

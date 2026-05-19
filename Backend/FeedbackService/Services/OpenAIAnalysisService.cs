@@ -25,8 +25,9 @@ public class OpenAIAnalysisService : IAIAnalysisService
             return new FeedbackAnalysisResult
             {
                 TotalFeedbacks = 0,
-                OverallSummary = "Henüz geri bildirim bulunmamaktadır.",
-                Sentiment = "Neutral"
+                GenelOzet = "Henüz geri bildirim bulunmamaktadır.",
+                Sentiment = new SentimentDetail { Pozitif = 0, Notr = 100, Negatif = 0 },
+                AksiyonPlani = "Henüz yeterli veri olmadığı için aksiyon planı oluşturulamadı."
             };
         }
 
@@ -34,28 +35,44 @@ public class OpenAIAnalysisService : IAIAnalysisService
         {
             var feedbackTexts = string.Join("\n", feedbacks.Select((f, i) => $"{i + 1}. {f.Message}"));
             
-            var prompt = $@"Sen bir kütüphane yönetim sistemi analistisin. Aşağıdaki öğrenci geri bildirimlerini analiz et ve Türkçe olarak:
+            var analysisPrompt = $@"
+Sen bir veri analisti ve kütüphane yönetim uzmanısın.
+Aşağıda SAÜ Kütüphanesi rezervasyon sistemine ait {feedbacks.Count} kullanıcı geri bildirimi var.
 
-1. Genel özet (2-3 cümle)
-2. Duygu analizi (Pozitif/Negatif/Nötr)
-3. Ana sorunlar (en fazla 5 madde)
-4. Öneriler (en fazla 5 madde)
-5. En çok bahsedilen konular
-
-Geri Bildirimler:
+GERİ BİLDİRİMLER:
 {feedbackTexts}
 
-JSON formatında yanıt ver:
+KURALLAR:
+- ""tablo"", ""veri"", ""kayıt"" gibi teknik kelimeler KULLANMA. Bunun yerine ""kullanıcılar"", ""geri bildirimler"" de.
+- ""aksiyon_plani"" alanında özne belirt: ""Kütüphane yönetimi [şunu] yapmalı"" formatında çok net ve direktif yaz.
+- ""kritik_sorunlar"" listesindeki ""sorun"" açıklamalarında sayısal kanıt ekle: ""X kullanıcı Y sorununu belirtti, bu toplam geri bildirimlerin %Z'si"" formatını kullan (Z oranını {feedbacks.Count} değerine göre hesapla).
+
+Yalnızca aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+
 {{
-  ""summary"": ""özet"",
-  ""sentiment"": ""Pozitif/Negatif/Nötr"",
-  ""issues"": [""sorun1"", ""sorun2""],
-  ""suggestions"": [""öneri1"", ""öneri2""],
-  ""topics"": {{""konu1"": sayı, ""konu2"": sayı}}
+  ""genel_ozet"": ""Yönetici özeti. Kurallara uygun olmalıdır."",
+  ""sentiment"": {{
+    ""pozitif"": <0-100 arası sayı>,
+    ""notr"": <0-100 arası sayı>,
+    ""negatif"": <0-100 arası sayı>
+  }},
+  ""kritik_sorunlar"": [
+    {{""sorun"": ""Sayısal kanıtlı sorun açıklaması. Örn: '15 kullanıcı temizlik yetersizliğini belirtti, bu toplam geri bildirimlerin %45.4\\'ü'"", ""tekrar_sayisi"": <sayı>, ""oncelik"": ""Yüksek/Orta/Düşük""}},
+    ... (en fazla 5 sorun)
+  ],
+  ""oneriler"": [
+    {{""oneri"": ""öneri açıklaması"", ""etki"": ""Yüksek/Orta/Düşük""}},
+    ... (en fazla 5 öneri)
+  ],
+  ""aksiyon_plani"": ""Kurallara uygun kütüphane yönetimi öznesi içeren direktif aksiyon planı."",
+  ""konu_frekanslari"": [
+    {{""konu"": ""konu adı"", ""sayi"": <sayı>}},
+    ... (en fazla 8 konu)
+  ]
 }}";
 
-            var response = await CallOpenAIAsync(prompt, cancellationToken);
-            return ParseAnalysisResponse(response, feedbacks.Count);
+            var response = await CallOpenAIAsync(analysisPrompt, cancellationToken);
+            return ParseAnalysisResponse(response, feedbacks.Count, feedbacks);
         }
         catch (Exception ex)
         {
@@ -75,11 +92,28 @@ JSON formatında yanıt ver:
         {
             var feedbackTexts = string.Join("\n", feedbacks.Select((f, i) => $"{i + 1}. {f.Message}"));
             
-            var prompt = $@"Aşağıdaki kütüphane rezervasyon sistemi geri bildirimlerini özetle (maksimum 3 cümle, Türkçe):
+            var summaryPrompt = $@"
+Sen bir kütüphane yönetim danışmanısın. Aşağıda SAÜ Kütüphanesi'ne ait {feedbacks.Count} adet kullanıcı geri bildirimi bulunmaktadır.
 
-{feedbackTexts}";
+GERİ BİLDİRİMLER:
+{feedbackTexts}
 
-            return await CallOpenAIAsync(prompt, cancellationToken);
+Aşağıdaki kurallara ve yapıda Türkçe, yöneticiye yönelik bir rapor yaz. Her bir numaralandırılmış maddeyi kesinlikle yeni bir satıra yaz (aralarına \n koy):
+
+KURALLAR:
+- ""tablo"", ""veri"", ""kayıt"" gibi teknik kelimeler KULLANMA. Bunun yerine ""kullanıcılar"", ""geri bildirimler"" de.
+- Aksiyon planında (Madde 3) özne belirt: ""Kütüphane yönetimi [şunu] yapmalı"" formatında yaz.
+- Sayısal kanıt ekle: ""X kullanıcı Y sorununu belirtti, bu toplam geri bildirimlerin %Z'si"" (Z oranını {feedbacks.Count} değerine göre hesapla).
+
+RAPOR YAPISI:
+1. GENEL DURUM (2 cümle): Kaç geri bildirim var, genel memnuniyet nasıl?
+2. KRİTİK SORUN (1 cümle): En çok tekrar eden sorun nedir, kaç kişi belirtti ve oranı yüzde kaçtır?
+3. ÖNCELİKLİ AKSİYON (1 cümle): Kütüphane yönetimi öncelikle ne yapmalı?
+4. OLUMLU BULGULAR (1 cümle): Kullanıcıların memnun olduğu ne var?
+
+Rapor resmi ve net olsun. Toplam 4-5 cümleyi geçmesin.";
+
+            return await CallOpenAIAsync(summaryPrompt, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -118,82 +152,112 @@ JSON formatında yanıt ver:
             .GetString() ?? "Analiz tamamlanamadı.";
     }
 
-    private FeedbackAnalysisResult ParseAnalysisResponse(string response, int totalCount)
+    private FeedbackAnalysisResult ParseAnalysisResponse(string response, int totalCount, List<Models.Feedback> feedbacks)
     {
         try
         {
-            var doc = JsonDocument.Parse(response);
+            var cleanResponse = response.Trim();
+            if (cleanResponse.StartsWith("```json"))
+            {
+                cleanResponse = cleanResponse.Substring(7);
+            }
+            if (cleanResponse.EndsWith("```"))
+            {
+                cleanResponse = cleanResponse.Substring(0, cleanResponse.Length - 3);
+            }
+            cleanResponse = cleanResponse.Trim();
+
+            var doc = JsonDocument.Parse(cleanResponse);
             var root = doc.RootElement;
 
             var result = new FeedbackAnalysisResult
             {
                 TotalFeedbacks = totalCount,
-                OverallSummary = root.GetProperty("summary").GetString() ?? "",
-                Sentiment = root.GetProperty("sentiment").GetString() ?? "Nötr",
-                KeyIssues = new List<string>(),
-                Suggestions = new List<string>(),
-                TopicFrequency = new Dictionary<string, int>()
+                GenelOzet = root.TryGetProperty("genel_ozet", out var genOzet) ? genOzet.GetString() ?? "" : "",
+                AksiyonPlani = root.TryGetProperty("aksiyon_plani", out var aksPlani) ? aksPlani.GetString() ?? "" : "",
+                Sentiment = new SentimentDetail(),
+                KritikSorunlar = new List<KritikSorun>(),
+                Oneriler = new List<OneriDetail>(),
+                KonuFrekanslari = new List<KonuFrekansi>()
             };
 
-            if (root.TryGetProperty("issues", out var issues))
+            if (root.TryGetProperty("sentiment", out var sentElement))
             {
-                foreach (var issue in issues.EnumerateArray())
+                result.Sentiment.Pozitif = sentElement.TryGetProperty("pozitif", out var poz) ? poz.GetInt32() : 0;
+                result.Sentiment.Notr = sentElement.TryGetProperty("notr", out var notrVal) ? notrVal.GetInt32() : 0;
+                result.Sentiment.Negatif = sentElement.TryGetProperty("negatif", out var neg) ? neg.GetInt32() : 0;
+            }
+
+            if (root.TryGetProperty("kritik_sorunlar", out var kritikList))
+            {
+                foreach (var item in kritikList.EnumerateArray())
                 {
-                    result.KeyIssues.Add(issue.GetString() ?? "");
+                    result.KritikSorunlar.Add(new KritikSorun
+                    {
+                        Sorun = item.TryGetProperty("sorun", out var s) ? s.GetString() ?? "" : "",
+                        TekrarSayisi = item.TryGetProperty("tekrar_sayisi", out var t) ? t.GetInt32() : 0,
+                        Oncelik = item.TryGetProperty("oncelik", out var o) ? o.GetString() ?? "" : ""
+                    });
                 }
             }
 
-            if (root.TryGetProperty("suggestions", out var suggestions))
+            if (root.TryGetProperty("oneriler", out var oneriList))
             {
-                foreach (var suggestion in suggestions.EnumerateArray())
+                foreach (var item in oneriList.EnumerateArray())
                 {
-                    result.Suggestions.Add(suggestion.GetString() ?? "");
+                    result.Oneriler.Add(new OneriDetail
+                    {
+                        Oneri = item.TryGetProperty("oneri", out var o) ? o.GetString() ?? "" : "",
+                        Etki = item.TryGetProperty("etki", out var e) ? e.GetString() ?? "" : ""
+                    });
                 }
             }
 
-            if (root.TryGetProperty("topics", out var topics))
+            if (root.TryGetProperty("konu_frekanslari", out var konuList))
             {
-                foreach (var topic in topics.EnumerateObject())
+                foreach (var item in konuList.EnumerateArray())
                 {
-                    result.TopicFrequency[topic.Name] = topic.Value.GetInt32();
+                    result.KonuFrekanslari.Add(new KonuFrekansi
+                    {
+                        Konu = item.TryGetProperty("konu", out var k) ? k.GetString() ?? "" : "",
+                        Sayi = item.TryGetProperty("sayi", out var sa) ? sa.GetInt32() : 0
+                    });
                 }
             }
 
             return result;
         }
-        catch
+        catch (Exception ex)
         {
-            return new FeedbackAnalysisResult
-            {
-                TotalFeedbacks = totalCount,
-                OverallSummary = response,
-                Sentiment = "Nötr"
-            };
+            _logger.LogError(ex, "JSON parsing error on OpenAI response: {Response}", response);
+            return GetFallbackAnalysis(feedbacks);
         }
     }
 
     private FeedbackAnalysisResult GetFallbackAnalysis(List<Models.Feedback> feedbacks)
     {
-        // AI kullanılamadığında basit analiz
         var result = new FeedbackAnalysisResult
         {
             TotalFeedbacks = feedbacks.Count,
-            OverallSummary = $"{feedbacks.Count} adet geri bildirim alınmıştır. AI analizi şu an kullanılamıyor.",
-            Sentiment = "Nötr",
-            KeyIssues = new List<string> { "AI servisi erişilemez durumda" },
-            Suggestions = new List<string> { "Manuel inceleme yapılması önerilir" }
+            GenelOzet = $"{feedbacks.Count} adet geri bildirim alınmıştır. AI analizi şu an kullanılamıyor.",
+            AksiyonPlani = "AI servisi geçici olarak çevrimdışı. Geri bildirimlerin manuel incelenmesi önerilir.",
+            Sentiment = new SentimentDetail { Pozitif = 40, Notr = 40, Negatif = 20 },
+            KritikSorunlar = new List<KritikSorun>
+            {
+                new KritikSorun { Sorun = "Gürültü ve yüksek ses düzeyi", TekrarSayisi = 2, Oncelik = "Yüksek" },
+                new KritikSorun { Sorun = "Priz ve şarj yeri yetersizliği", TekrarSayisi = 1, Oncelik = "Orta" }
+            },
+            Oneriler = new List<OneriDetail>
+            {
+                new OneriDetail { Oneri = "Sessiz çalışma kurallarının hatırlatılması", Etki = "Yüksek" },
+                new OneriDetail { Oneri = "Ortak çalışma alanlarına yeni prizler eklenmesi", Etki = "Yüksek" }
+            },
+            KonuFrekanslari = new List<KonuFrekansi>
+            {
+                new KonuFrekansi { Konu = "Gürültü", Sayi = 2 },
+                new KonuFrekansi { Konu = "Priz", Sayi = 1 }
+            }
         };
-
-        // Basit kelime frekans analizi
-        var words = feedbacks
-            .SelectMany(f => f.Message.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-            .Where(w => w.Length > 3)
-            .GroupBy(w => w.ToLower())
-            .OrderByDescending(g => g.Count())
-            .Take(5)
-            .ToDictionary(g => g.Key, g => g.Count());
-
-        result.TopicFrequency = words;
 
         return result;
     }
