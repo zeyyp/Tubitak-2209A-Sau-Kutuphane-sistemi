@@ -155,7 +155,7 @@
       >
         <div class="d-flex">
           <div class="toast-body">
-            <div class="fw-semibold">{{ lastSuccessMessage || lastErrorMessage }}</div>
+            <div class="fw-semibold" style="white-space: pre-line;">{{ lastSuccessMessage || lastErrorMessage }}</div>
             <div *ngIf="lastErrorReason" class="small mt-2">Ceza nedeni: {{ lastErrorReason }}</div>
           </div>
           <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close" (click)="lastNotificationType = ''; lastErrorMessage = ''; lastSuccessMessage = ''; lastErrorReason = '';"></button>

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -15,6 +15,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   showPassword = false;
+  isAdminMode = false;
 
   errorMessage = '';
   showErrorBanner = false;
@@ -22,7 +23,9 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
   ) {
     this.loginForm = this.fb.group({
       studentNumber: ['', [Validators.required]],
@@ -40,6 +43,11 @@ export class LoginComponent implements OnInit {
         this.router.navigate(['/']);
       }
     }
+
+    this.route.queryParams.subscribe(p => {
+      this.isAdminMode = p['mode'] === 'admin' || p['role'] === 'admin';
+      this.cdr.detectChanges();
+    });
   }
 
   togglePassword() {
@@ -49,8 +57,10 @@ export class LoginComponent implements OnInit {
   displayError(message: string) {
     this.errorMessage = message;
     this.showErrorBanner = true;
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.showErrorBanner = false;
+      this.cdr.detectChanges();
     }, 5000);
   }
 
@@ -62,6 +72,7 @@ export class LoginComponent implements OnInit {
 
     this.isLoading = true;
     this.showErrorBanner = false;
+    this.cdr.detectChanges();
     const { studentNumber, password, rememberMe } = this.loginForm.value;
 
     this.authService.login(studentNumber, password).subscribe({
@@ -74,6 +85,7 @@ export class LoginComponent implements OnInit {
         }
 
         const role = localStorage.getItem('user_role');
+        this.cdr.detectChanges();
         if (role === 'admin') {
           this.router.navigate(['/admin']);
         } else {
@@ -83,12 +95,13 @@ export class LoginComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         if (err.status === 401) {
-          this.displayError('Öğrenci numarası veya şifre hatalı.');
+          this.displayError('Şifre veya öğrenci numarası hatalıdır.');
         } else if (err.status === 423) {
           this.displayError('Hesabınız geçici olarak kilitlendi. 15 dakika sonra tekrar deneyin.');
         } else {
           this.displayError('Giriş sırasında bir hata oluştu. Lütfen tekrar deneyin.');
         }
+        this.cdr.detectChanges();
       }
     });
   }

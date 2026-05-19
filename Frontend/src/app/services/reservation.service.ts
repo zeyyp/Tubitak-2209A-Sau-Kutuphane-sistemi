@@ -36,6 +36,10 @@ export class ReservationService {
     return this.http.get(`${this.apiUrl}/Profile/${studentNumber}`);
   }
 
+  updateStudentProfile(studentNumber: string, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/Profile/${studentNumber}`, data);
+  }
+
   getPenaltyList(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/Penalties`);
   }

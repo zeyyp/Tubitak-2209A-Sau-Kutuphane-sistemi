@@ -93,7 +93,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.examWeeks = examWeeks ?? [];
 
         // Active reservation: today, not cancelled, not attended-over
-        const today = new Date().toISOString().split('T')[0];
+        const todayObj = new Date();
+        const today = todayObj.getFullYear() + '-' + String(todayObj.getMonth() + 1).padStart(2, '0') + '-' + String(todayObj.getDate()).padStart(2, '0');
         this.activeReservation = (reservations ?? []).find((r: any) => {
           const d = (r.reservationDate ?? r.ReservationDate ?? '').substring(0, 10);
           return d === today && !(r.isCancelled ?? r.IsCancelled);

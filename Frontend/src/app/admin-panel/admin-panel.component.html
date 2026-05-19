@@ -1,4 +1,4 @@
-﻿<div class="admin-layout">
+<div class="admin-layout">
 
   <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
   <aside class="sidebar" [class.sidebar-open]="sidebarOpen">
@@ -20,10 +20,6 @@
         <span class="nav-icon">📊</span>
         <span>Dashboard</span>
       </a>
-      <a class="nav-item" [class.active]="activeTab === 'reservations'" (click)="setTab('reservations')">
-        <span class="nav-icon">📋</span>
-        <span>Tüm Rezervasyonlar</span>
-      </a>
       <a class="nav-item" [class.active]="activeTab === 'penalties'" (click)="setTab('penalties')">
         <span class="nav-icon">⚠️</span>
         <span>Kullanıcı Cezaları</span>
@@ -35,10 +31,6 @@
       <a class="nav-item" [class.active]="activeTab === 'examweeks'" (click)="setTab('examweeks')">
         <span class="nav-icon">📅</span>
         <span>Sınav Haftaları</span>
-      </a>
-      <a class="nav-item" [class.active]="activeTab === 'turnstile'" (click)="setTab('turnstile')">
-        <span class="nav-icon">🚪</span>
-        <span>Turnike Logları</span>
       </a>
     </nav>
 
@@ -73,11 +65,9 @@
       <h1 class="topbar-title">
         <ng-container [ngSwitch]="activeTab">
           <ng-container *ngSwitchCase="'dashboard'">Dashboard</ng-container>
-          <ng-container *ngSwitchCase="'reservations'">Tüm Rezervasyonlar</ng-container>
           <ng-container *ngSwitchCase="'penalties'">Kullanıcı Cezaları</ng-container>
           <ng-container *ngSwitchCase="'feedback'">Geri Bildirimler &amp; AI Analizi</ng-container>
           <ng-container *ngSwitchCase="'examweeks'">Sınav Haftaları</ng-container>
-          <ng-container *ngSwitchCase="'turnstile'">Turnike Logları</ng-container>
         </ng-container>
       </h1>
 
@@ -112,17 +102,29 @@
 
       <!-- TAB 1: DASHBOARD -->
       <div *ngIf="activeTab === 'dashboard'">
+        <!-- Header Row -->
+        <div class="section-header-row">
+          <div>
+            <h2 class="section-title">Yönetici Dashboard</h2>
+            <p class="section-subtitle">Rezervasyon sistemi genel durum analizi</p>
+          </div>
+          <button class="btn-outline" (click)="loadDashboard()" [disabled]="isLoadingDashboard">
+            <span *ngIf="isLoadingDashboard" class="spinner-sm"></span>
+            <span *ngIf="!isLoadingDashboard">↻</span>
+            Verileri Yenile
+          </button>
+        </div>
+
+        <!-- BÖLÜM 1: KPI KARTLARI -->
         <div *ngIf="isLoadingDashboard" class="skeleton-grid">
-          <div class="skeleton skeleton-card-sm"></div>
-          <div class="skeleton skeleton-card-sm"></div>
-          <div class="skeleton skeleton-card-sm"></div>
-          <div class="skeleton skeleton-card-sm"></div>
+          <div class="skeleton skeleton-card-sm" *ngFor="let i of [1,2,3,4]"></div>
         </div>
         <div *ngIf="!isLoadingDashboard && dashboardError" class="error-state">
           <span class="error-icon">⚠️</span>
-          <p>Veri yüklenemedi.</p>
+          <p>İstatistik verileri yüklenemedi.</p>
           <button class="btn-primary" (click)="loadDashboard()">Tekrar Dene</button>
         </div>
+        
         <ng-container *ngIf="!isLoadingDashboard && !dashboardError">
           <div class="metric-grid">
             <div class="metric-card metric-blue">
@@ -143,111 +145,100 @@
               <div class="metric-icon">🚫</div>
               <div class="metric-body">
                 <div class="metric-value">{{ penalties.length }}</div>
-                <div class="metric-label">Aktif Ban</div>
-              </div>
-            </div>
-            <div class="metric-card metric-orange">
-              <div class="metric-icon">💬</div>
-              <div class="metric-body">
-                <div class="metric-value">{{ feedbacks.length }}</div>
-                <div class="metric-label">Geri Bildirim</div>
+                <div class="metric-label">Aktif Ban Sayısı</div>
               </div>
             </div>
           </div>
 
-          <div class="charts-grid">
+          <!-- BÖLÜM 2: İKİ KOLONLU GRİD -->
+          <div class="charts-grid-new">
+            <!-- Sol Kolon: Grafik -->
             <div class="chart-card">
-              <h3 class="chart-title">Öğrenci Tipine Göre Dağılım</h3>
-              <div *ngIf="stats?.byStudentType" class="bar-list">
-                <div *ngFor="let key of studentTypeKeys" class="bar-row">
-                  <div class="bar-label">{{ key }}</div>
-                  <div class="bar-track">
-                    <div class="bar-fill" [style.width.%]="getStudentTypePercent(key)" [style.background]="getStudentTypeColor(key)"></div>
-                  </div>
-                  <div class="bar-info">
-                    <span>{{ stats.byStudentType[key] }}</span>
-                    <span class="bar-pct">%{{ getStudentTypePercent(key) }}</span>
-                  </div>
-                </div>
+              <h3 class="chart-title">⏰ Saatlik Yoğunluk Analizi</h3>
+              <div class="chart-container">
+                <canvas #priorityChart></canvas>
               </div>
-              <div *ngIf="!stats?.byStudentType" class="empty-inline">Veri yok</div>
+              <p class="chart-subnote">
+                Gün içerisindeki rezervasyon saatlerine göre yoğunluk dağılımı
+              </p>
             </div>
-            <div class="chart-card">
-              <h3 class="chart-title">Saate Göre Rezervasyon Dağılımı</h3>
-              <div *ngIf="hourKeys.length > 0" class="bar-list bar-list-compact">
-                <div *ngFor="let h of hourKeys" class="bar-row">
-                  <div class="bar-label bar-label-sm">{{ h }}:00</div>
-                  <div class="bar-track">
-                    <div class="bar-fill" [class.bar-fill-peak]="stats.reservationsByHour[h] === maxHourCount" [style.width.%]="getHourPercent(h)" style="background:#2563eb"></div>
-                  </div>
-                  <div class="bar-info">{{ stats.reservationsByHour[h] }}</div>
-                </div>
-              </div>
-              <div *ngIf="hourKeys.length === 0" class="empty-inline">Veri yok</div>
-            </div>
-          </div>
-        </ng-container>
-      </div>
 
-      <!-- TAB 2: RESERVATIONS -->
-      <div *ngIf="activeTab === 'reservations'">
-        <div class="filter-bar">
-          <input class="filter-input" type="text" placeholder="Öğrenci numarasına göre ara..." [(ngModel)]="reservationSearch" (ngModelChange)="applyFilters()" />
-          <select class="filter-select" [(ngModel)]="reservationStatusFilter" (ngModelChange)="applyFilters()">
-            <option value="">Tum Durumlar</option>
-            <option value="attended">Katıldı</option>
-            <option value="noshow">Cezalı</option>
-            <option value="pending">Bekliyor</option>
-          </select>
-          <a class="filter-reset" (click)="resetFilters()">Filtreleri Sıfırla</a>
-        </div>
-        <div *ngIf="isLoadingReservations" class="skeleton-rows">
-          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
-        </div>
-        <div *ngIf="!isLoadingReservations && reservationsError" class="error-state">
-          <span class="error-icon">⚠️</span>
-          <p>Veri yüklenemedi.</p>
-          <button class="btn-primary" (click)="loadReservations()">Tekrar Dene</button>
-        </div>
-        <ng-container *ngIf="!isLoadingReservations && !reservationsError">
-          <div *ngIf="filteredReservations.length === 0" class="empty-state">
-            <div class="empty-icon">📋</div>
-            <p>Henüz rezervasyon bulunmuyor.</p>
+            <!-- Sağ Kolon: AI Özeti -->
+            <div class="chart-card ai-summary-card">
+              <div class="ai-summary-header">
+                <h3 class="chart-title">AI Geri Bildirim Özeti</h3>
+                <a class="ai-link" (click)="setTab('feedback')">Detaylı Analiz →</a>
+              </div>
+
+              <!-- OpenAI API Key veya summary Yoksa -->
+              <div *ngIf="!dashboardAiSummary?.summary" class="ai-no-config-box">
+                <p class="ai-no-config-text">AI analizi yapılandırılmamış.</p>
+                <div class="ai-badges-placeholder">
+                  <span class="sentiment-badge badge-positive">🟢 Pozitif: %—</span>
+                  <span class="sentiment-badge badge-neutral">🟡 Nötr: %—</span>
+                  <span class="sentiment-badge badge-negative">🔴 Negatif: %—</span>
+                </div>
+              </div>
+
+              <!-- AI Summary Varsa -->
+              <div *ngIf="dashboardAiSummary?.summary" class="ai-content">
+                <p class="ai-summary-text-dash">{{ dashboardAiSummary.summary }}</p>
+                <div class="ai-badges" *ngIf="dashboardAiSentiment">
+                  <span class="sentiment-badge badge-positive">🟢 Pozitif: %{{ dashboardAiSentiment.positive }}</span>
+                  <span class="sentiment-badge badge-neutral">🟡 Nötr: %{{ dashboardAiSentiment.neutral }}</span>
+                  <span class="sentiment-badge badge-negative">🔴 Negatif: %{{ dashboardAiSentiment.negative }}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div *ngIf="filteredReservations.length > 0" class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Öğrenci No</th>
-                  <th>Tarih</th>
-                  <th>Saat</th>
-                  <th>Masa / Kat</th>
-                  <th>Durum</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let r of pagedReservations">
-                  <td><span class="student-badge">{{ r.studentNumber }}</span></td>
-                  <td>{{ formatDate(r.reservationDate) }}</td>
-                  <td>{{ r.startTime }} → {{ r.endTime }}</td>
-                  <td>
-                    <ng-container *ngIf="r.tableId; else noTable">
-                      Masa {{ r.tableId }}<span *ngIf="r.floorId"> · Kat {{ r.floorId }}</span>
-                    </ng-container>
-                    <ng-template #noTable>—</ng-template>
-                  </td>
-                  <td>
-                    <span class="status-badge status-attended" *ngIf="getReservationStatus(r) === 'attended'">Katıldı ✓</span>
-                    <span class="status-badge status-penalty" *ngIf="getReservationStatus(r) === 'penalty'">Cezalı ✗</span>
-                    <span class="status-badge status-pending" *ngIf="getReservationStatus(r) === 'pending'">Bekliyor</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="pagination">
-              <button class="page-btn" (click)="prevPage()" [disabled]="currentPage === 1">← Önceki</button>
-              <span class="page-info">Sayfa {{ currentPage }} / {{ totalPages }}</span>
-              <button class="page-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Sonraki →</button>
+
+          <!-- BÖLÜM 4: ÖĞRENCİ TİPİ DETAY TABLOSU -->
+          <div class="dashboard-table-card">
+            <h3 class="dashboard-card-title">🎓 Öğrenci Tipi Bazlı Analiz</h3>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Öğrenci Tipi</th>
+                    <th>Rezervasyon Sayısı</th>
+                    <th>Katılım Oranı %</th>
+                    <th>Ort. Erken Rezervasyon Süresi</th>
+                    <th>Öncelik Skoru</th>
+                    <th>Rezervasyon Açılış Saati</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of stats?.studentTypeBreakdown">
+                    <td>
+                      <span class="student-type-chip">{{ row.studentType }}</span>
+                    </td>
+                    <td class="td-num">{{ row.count }}</td>
+                    <td>
+                      <div class="attendance-bar-wrap">
+                        <div class="attendance-bar-fill" [style.width.%]="row.attendanceRate"></div>
+                        <span class="attendance-bar-label">%{{ row.attendanceRate }}</span>
+                      </div>
+                    </td>
+                    <td class="td-num" style="font-weight: 600; color: #1e293b;">
+                      {{ row.avgHoursBefore !== undefined ? (row.avgHoursBefore.toFixed(1) + ' saat önce') : '-' }}
+                    </td>
+                    <td>
+                      <span class="priority-badge"
+                        [class.priority-high]="getPriorityScore(row.studentType) === 300"
+                        [class.priority-mid]="getPriorityScore(row.studentType) === 200"
+                        [class.priority-low]="getPriorityScore(row.studentType) === 100">
+                        {{ getPriorityScore(row.studentType) }}
+                      </span>
+                    </td>
+                    <td>
+                      <strong class="opening-time-label">{{ getOpeningTime(row.studentType) }}</strong>
+                    </td>
+                  </tr>
+                  <tr *ngIf="!stats?.studentTypeBreakdown?.length">
+                    <td colspan="6" class="td-empty">Veri bulunamadı.</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </ng-container>
@@ -255,9 +246,9 @@
 
       <!-- TAB 3: PENALTIES -->
       <div *ngIf="activeTab === 'penalties'">
-        <div class="section-header-row">
+        <div class="section-header-row" style="margin-bottom: 15px;">
           <div>
-            <span *ngIf="penalties.length > 0" class="badge-red">{{ penalties.length }} Aktif Ban</span>
+            <span class="text-muted small">{{ penalties.length }} Aktif Ban &nbsp;|&nbsp; Ceza Sistemi Aktif</span>
           </div>
         </div>
         <div *ngIf="isLoadingPenalties" class="skeleton-rows">
@@ -271,7 +262,8 @@
         <ng-container *ngIf="!isLoadingPenalties && !penaltiesError">
           <div *ngIf="penalties.length === 0" class="empty-state empty-state-green">
             <div class="empty-icon">✅</div>
-            <p>Şu an aktif ceza kaydı bulunmuyor.</p>
+            <p style="margin: 0;">Şu an aktif ban bulunmuyor</p>
+            <p style="font-size: 0.9em; opacity: 0.8; margin-top: 5px;">Ceza sistemi çalışıyor, no-show tespit edilmedi.</p>
           </div>
           <div *ngIf="penalties.length > 0" class="table-wrapper">
             <table class="data-table">
@@ -281,16 +273,18 @@
                   <th>Öğrenci Tipi</th>
                   <th>Ban Bitiş Tarihi</th>
                   <th>Ceza Nedeni</th>
-                  <th>Son İşlem</th>
+                  <th>İşlem</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let p of penalties" class="row-penalty">
                   <td><span class="student-badge">{{ p.studentNumber }}</span></td>
                   <td>{{ p.studentType ?? '—' }}</td>
-                  <td>{{ formatDate(p.bannedUntil ?? p.penaltyEndDate) }}</td>
-                  <td>{{ p.reason ?? p.penaltyReason ?? '—' }}</td>
-                  <td>{{ formatDate(p.updatedAt ?? p.createdAt) }}</td>
+                  <td>{{ formatDate(p.banUntil ?? p.bannedUntil ?? p.penaltyEndDate) }}</td>
+                  <td>{{ p.banReason ?? p.reason ?? p.penaltyReason ?? '—' }}</td>
+                  <td>
+                    <button class="btn btn-danger btn-sm" (click)="removeBan(p.studentNumber)">Banı Kaldır</button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -300,69 +294,209 @@
 
       <!-- TAB 4: FEEDBACK & AI -->
       <div *ngIf="activeTab === 'feedback'">
-        <div class="feedback-header-row">
-          <div class="mini-metrics">
-            <div class="mini-metric">
-              <div class="mini-metric-value">{{ feedbacks.length }}</div>
-              <div class="mini-metric-label">Toplam Geri Bildirim</div>
+
+        <!-- BÖLÜM 1: Üst Bar -->
+        <div class="fb-header-row">
+          <div class="fb-header-metrics">
+            <div class="fb-mini-stat">
+              <span class="fb-mini-val">{{ feedbacks.length }}</span>
+              <span class="fb-mini-lbl">Toplam Geri Bildirim</span>
             </div>
-            <div class="mini-metric" *ngIf="aiAnalysis?.overallSentiment">
-              <div class="mini-metric-value">{{ aiAnalysis.overallSentiment }}</div>
-              <div class="mini-metric-label">Genel Duygu</div>
+            <div class="fb-mini-stat">
+              <span class="fb-mini-val">{{ aiAnalysis?.topSuggestions?.length ?? 0 }}</span>
+              <span class="fb-mini-lbl">Öneri Sayısı</span>
             </div>
-            <div class="mini-metric" *ngIf="aiAnalysis?.suggestions?.length">
-              <div class="mini-metric-value">{{ aiAnalysis.suggestions?.length ?? 0 }}</div>
-              <div class="mini-metric-label">Öneri Sayısı</div>
+            <div class="fb-mini-stat">
+              <span class="fb-mini-val">{{ aiAnalysis?.topIssues?.length ?? 0 }}</span>
+              <span class="fb-mini-lbl">Tespit Edilen Sorun</span>
             </div>
           </div>
-          <button class="btn-outline" (click)="refreshAnalysis()" [disabled]="isLoadingAI">
-            <span *ngIf="isLoadingAI" class="spinner-sm"></span>
-            <span *ngIf="!isLoadingAI">↻</span>
-            Analizi Yenile
-          </button>
+          <div class="fb-header-actions">
+            <button class="btn-refresh btn-fb-view" (click)="openFeedbacksModal()">
+              👁️ Geri Bildirimleri Görüntüle
+            </button>
+            <button class="btn-refresh" (click)="refreshAnalysis()" [disabled]="isLoadingAI">
+              <span *ngIf="isLoadingAI" class="spinner-sm"></span>
+              <span *ngIf="!isLoadingAI">↻</span>
+              Analizi Yenile
+            </button>
+          </div>
         </div>
-        <div *ngIf="isLoadingFeedback || isLoadingAI" class="skeleton-rows">
-          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3]"></div>
+
+        <!-- Loading -->
+        <div *ngIf="isLoadingFeedback || isLoadingAI" class="fb-loading-grid">
+          <div class="fb-skeleton-card">
+            <div class="skeleton skeleton-line" style="width:40%;margin-bottom:16px"></div>
+            <div class="fb-donut-placeholder skeleton"></div>
+          </div>
+          <div class="fb-skeleton-card">
+            <div class="skeleton skeleton-line" style="width:60%;margin-bottom:12px"></div>
+            <div class="skeleton skeleton-line" style="width:100%;margin-bottom:8px"></div>
+            <div class="skeleton skeleton-line" style="width:90%;margin-bottom:8px"></div>
+            <div class="skeleton skeleton-line" style="width:80%"></div>
+          </div>
         </div>
+
         <ng-container *ngIf="!isLoadingFeedback && !isLoadingAI">
-          <div *ngIf="aiError || (!aiAnalysis && !aiSummary)" class="ai-unavailable">
-            <div class="ai-unavailable-icon">🤖</div>
-            <h3>AI Servisi Kullanılamıyor</h3>
-            <p>Şu an AI analiz servisi yanıt vermiyor.</p>
-            <p class="ai-note">OpenAI API anahtarının yapılandırıldığından emin olun ve "Analizi Yenile" butonuna tekrar tıklayın.</p>
+
+          <!-- API KEY MISSING uyarısı -->
+          <div *ngIf="aiError || !aiAnalysis" class="fb-warning-box">
+            <div class="fb-warning-icon">⚠️</div>
+            <div class="fb-warning-content">
+              <p class="fb-warning-title">AI analizi için OpenAI API anahtarı yapılandırılmamıştır.</p>
+              <p class="fb-warning-desc">
+                FeedbackService <code>appsettings.json</code> dosyasına <code>OpenAI:ApiKey</code> eklenmesi gerekir.
+              </p>
+              <button class="btn-warning-continue" (click)="refreshAnalysis()">Tekrar Dene</button>
+            </div>
           </div>
-          <ng-container *ngIf="!aiError && (aiAnalysis || aiSummary)">
-            <div class="ai-card" *ngIf="aiSummary?.summary || aiAnalysis?.summary">
-              <h3 class="ai-card-title">📝 Genel Özet</h3>
-              <p class="ai-summary-text">{{ aiSummary?.summary ?? aiAnalysis?.summary }}</p>
-            </div>
-            <div class="ai-card" *ngIf="aiAnalysis?.issues?.length">
-              <h3 class="ai-card-title">🔴 Tespit Edilen Sorunlar</h3>
-              <div class="issue-list">
-                <div *ngFor="let issue of aiAnalysis.issues" class="issue-item issue-red">{{ issue }}</div>
+
+          <!-- ANA ANALİZ PANELİ -->
+          <ng-container *ngIf="!aiError && aiAnalysis">
+
+            <!-- BÖLÜM 2: 2 Kolonlu Grid -->
+            <div class="fb-analysis-grid">
+
+              <!-- SOL KOLON -->
+              <div class="fb-col">
+
+                <!-- 2a: Duygu Analizi -->
+                <div class="fb-card">
+                  <div class="fb-card-header">
+                    <h3 class="fb-card-title">Duygu Analizi</h3>
+                    <span class="ai-badge">🤖 AI</span>
+                  </div>
+                  <div class="fb-donut-wrap">
+                    <div class="fb-donut-container">
+                      <canvas #sentimentChart></canvas>
+                      <div class="fb-donut-center">
+                        <div class="fb-donut-center-val">{{ feedbackTotalCount || '—' }}</div>
+                        <div class="fb-donut-center-lbl">konu</div>
+                      </div>
+                    </div>
+                    <div class="fb-sentiment-rows">
+                      <div class="fb-sentiment-row">
+                        <span class="fb-dot" style="background:#34a853"></span>
+                        <span class="fb-sent-label">Pozitif</span>
+                        <span class="fb-sent-val positive-val">%{{ aiAnalysis.sentiment?.positive ?? 0 }}</span>
+                      </div>
+                      <div class="fb-sentiment-row">
+                        <span class="fb-dot" style="background:#9aa0a6"></span>
+                        <span class="fb-sent-label">Nötr</span>
+                        <span class="fb-sent-val neutral-val">%{{ aiAnalysis.sentiment?.neutral ?? 0 }}</span>
+                      </div>
+                      <div class="fb-sentiment-row">
+                        <span class="fb-dot" style="background:#ea4335"></span>
+                        <span class="fb-sent-label">Negatif</span>
+                        <span class="fb-sent-val negative-val">%{{ aiAnalysis.sentiment?.negative ?? 0 }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2b: AI Genel Değerlendirme -->
+                <div class="fb-card">
+                  <div class="fb-card-header">
+                    <h3 class="fb-card-title">AI Genel Değerlendirme</h3>
+                    <span class="ai-badge">🤖 AI</span>
+                  </div>
+                  <div *ngIf="(aiSummary?.summary ?? aiAnalysis?.summary)?.length < 50" class="fb-inline-warn">
+                    ⚠️ Yeterli geri bildirim bulunmadığından analiz sınırlıdır.
+                  </div>
+                  <p class="fb-summary-text">
+                    {{ aiSummary?.summary ?? aiAnalysis?.summary ?? 'Özet oluşturulamadı.' }}
+                  </p>
+                  
+                  <!-- Aksiyon Planı -->
+                  <div *ngIf="aiAnalysis?.aksiyonPlani" class="fb-action-plan-box" style="margin-top: 16px; padding: 12px; border-radius: 8px; border: 1px dashed #34d399; background: rgba(52, 211, 153, 0.05);">
+                    <h4 class="fb-action-plan-title" style="font-size: 13px; font-weight: 600; margin: 0 0 6px 0; color: #10b981; display: flex; align-items: center; gap: 6px;">
+                      ⚡ Öncelikli Aksiyon Planı
+                    </h4>
+                    <p class="fb-action-plan-text" style="font-size: 12px; line-height: 1.5; color: #4b5563; margin: 0; font-style: italic;">
+                      {{ aiAnalysis.aksiyonPlani }}
+                    </p>
+                  </div>
+                  
+                  <p class="fb-ai-note">Bu analiz OpenAI GPT-3.5-turbo tarafından oluşturulmuştur.</p>
+                </div>
+
+              </div>
+
+              <!-- SAĞ KOLON -->
+              <div class="fb-col">
+
+                <!-- 2c: En Sık Sorunlar -->
+                <div class="fb-card">
+                  <div class="fb-card-header">
+                    <h3 class="fb-card-title">En Sık Karşılaşılan Sorunlar</h3>
+                    <span class="ai-badge">🤖 AI</span>
+                  </div>
+                  <div *ngIf="!aiAnalysis.topIssues?.length" class="fb-empty-inline">
+                    Henüz şikayet tespit edilmedi.
+                  </div>
+                  <ol class="fb-numbered-list" *ngIf="aiAnalysis.topIssues?.length">
+                    <li *ngFor="let issue of aiAnalysis.topIssues; let i = index" class="fb-list-item fb-list-red">
+                      <span class="fb-list-num">{{ i + 1 }}</span>
+                      <span class="fb-list-icon">🔴</span>
+                      <span class="fb-list-text">{{ issue }}</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <!-- 2d: Öneriler -->
+                <div class="fb-card">
+                  <div class="fb-card-header">
+                    <h3 class="fb-card-title">Kullanıcı Önerileri</h3>
+                    <span class="ai-badge">🤖 AI</span>
+                  </div>
+                  <div *ngIf="!aiAnalysis.topSuggestions?.length" class="fb-empty-inline">
+                    Henüz öneri tespit edilmedi.
+                  </div>
+                  <ol class="fb-numbered-list" *ngIf="aiAnalysis.topSuggestions?.length">
+                    <li *ngFor="let s of aiAnalysis.topSuggestions; let i = index" class="fb-list-item fb-list-green">
+                      <span class="fb-list-num">{{ i + 1 }}</span>
+                      <span class="fb-list-icon">🟢</span>
+                      <span class="fb-list-text">{{ s }}</span>
+                    </li>
+                  </ol>
+                </div>
+
               </div>
             </div>
-            <div class="ai-card" *ngIf="aiAnalysis?.suggestions?.length">
-              <h3 class="ai-card-title">🟢 AI Önerileri</h3>
-              <div class="issue-list">
-                <div *ngFor="let s of aiAnalysis.suggestions" class="issue-item issue-green">{{ s }}</div>
+
+            <!-- BÖLÜM 3: Konu Frekansı Bar Chart -->
+            <div class="fb-card fb-topic-card" *ngIf="topicFrequencyList.length > 0">
+              <div class="fb-card-header">
+                <h3 class="fb-card-title">Konu Frekans Dağılımı</h3>
+                <span class="ai-badge">🤖 AI</span>
+              </div>
+              <div class="fb-topic-chart-container">
+                <canvas #topicChart></canvas>
               </div>
             </div>
-            <div class="ai-card" *ngIf="topicKeys.length > 0">
-              <h3 class="ai-card-title">🏷 En Çok Bahsedilen Konular</h3>
-              <div class="topic-pills">
-                <span *ngFor="let t of topicKeys" class="topic-pill">{{ t }}: {{ aiAnalysis.topicCounts[t] }}</span>
-              </div>
-            </div>
+
           </ng-container>
         </ng-container>
       </div>
+
 
       <!-- TAB 5: EXAM WEEKS -->
       <div *ngIf="activeTab === 'examweeks'">
         <div *ngIf="examWeekToast" class="toast" [class.toast-success]="examWeekToast.type === 'success'" [class.toast-error]="examWeekToast.type === 'error'">
           {{ examWeekToast.message }}
         </div>
+        
+        <!-- Üst Bilgi Kutusu -->
+        <div class="exam-info-box">
+          <div class="exam-info-icon">ℹ️</div>
+          <div class="exam-info-content">
+            <h4 class="exam-info-title">Sınav Haftası Önceliklendirmesi Nasıl Çalışır?</h4>
+            <p class="exam-info-text">
+              Bir fakültenin sınav haftası tanımlandığında, o fakültedeki Lisans öğrencileri +50 puan bonus alarak öncelik skorları 150'ye çıkar. Bu sayede sınav döneminde rezervasyon açılışı 14:00 yerine 12:00'de gerçekleşir.
+            </p>
+          </div>
+        </div>
+
         <div *ngIf="isLoadingExamWeeks" class="skeleton-rows">
           <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3]"></div>
         </div>
@@ -376,11 +510,15 @@
             <div class="exam-form-card">
               <h3 class="card-section-title">Yeni Sınav Haftası Ekle</h3>
               <div class="form-group">
-                <label class="form-label">Fakülte</label>
-                <select class="form-control" [(ngModel)]="newExamWeek.facultyId">
-                  <option [value]="0" disabled>Fakülte seçiniz</option>
-                  <option *ngFor="let f of faculties" [value]="f.id">{{ f.name }}</option>
-                </select>
+                <label class="form-label">Fakülteler (Çoklu Seçim)</label>
+                <div class="faculty-checkbox-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: white;">
+                  <div class="form-check" *ngFor="let f of faculties" style="margin-bottom: 8px;">
+                    <input class="form-check-input" type="checkbox" [value]="f.id" [id]="'fac_' + f.id" (change)="toggleFacultySelection(f.id, $event)">
+                    <label class="form-check-label" [for]="'fac_' + f.id" style="margin-left: 8px; cursor: pointer; user-select: none;">
+                      {{ f.name }}
+                    </label>
+                  </div>
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Başlangıç Tarihi</label>
@@ -406,61 +544,63 @@
               </div>
               <div *ngFor="let w of examWeeks" class="exam-week-card">
                 <div class="exam-week-header">
-                  <span class="exam-faculty">{{ w.facultyName ?? w.faculty ?? 'Fakulte' }}</span>
-                  <span class="badge-active" *ngIf="isExamWeekActive(w)">Aktif</span>
-                  <span class="badge-past" *ngIf="!isExamWeekActive(w)">Geçmiş</span>
+                  <span class="exam-faculty">{{ w.facultyName ?? w.faculty ?? 'Fakülte' }}</span>
+                  <span class="badge-exam-status" [ngClass]="'exam-status-' + getExamWeekStatus(w)">
+                    <span class="status-dot"></span>
+                    {{ getExamWeekStatusLabel(w) }}
+                  </span>
                 </div>
-                <div class="exam-week-dates">{{ formatDate(w.examWeekStart) }} – {{ formatDate(w.examWeekEnd) }}</div>
+                <div class="exam-week-dates">{{ formatDate(w.examWeekStart ?? w.startDate) }} – {{ formatDate(w.examWeekEnd ?? w.endDate) }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aktif sınav haftası bildirimi -->
+          <div *ngIf="activeExamWeeks.length > 0" class="active-exam-alert">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <div *ngFor="let activeWeek of activeExamWeeks" class="alert-item">
+                Şu an <strong>{{ activeWeek.facultyName ?? activeWeek.faculty ?? 'İlgili' }}</strong> fakültesi için aktif sınav haftası bulunmaktadır. Bu fakültedeki Lisans öğrencileri öncelikli erişime sahiptir.
               </div>
             </div>
           </div>
         </ng-container>
       </div>
 
-      <!-- TAB 6: TURNSTILE -->
-      <div *ngIf="activeTab === 'turnstile'">
-        <div class="section-header-row">
-          <span></span>
-          <button class="btn-outline" (click)="reloadTurnstile()">↻ Yenile</button>
-        </div>
-        <div *ngIf="isLoadingTurnstile" class="skeleton-rows">
-          <div class="skeleton skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
-        </div>
-        <div *ngIf="!isLoadingTurnstile && turnstileError" class="error-state">
-          <span class="error-icon">⚠️</span>
-          <p>Veri yüklenemedi.</p>
-          <button class="btn-primary" (click)="reloadTurnstile()">Tekrar Dene</button>
-        </div>
-        <ng-container *ngIf="!isLoadingTurnstile && !turnstileError">
-          <div *ngIf="turnstileLogs.length === 0" class="empty-state">
-            <div class="empty-icon">🚪</div>
-            <p>Henüz turnike kaydı bulunmuyor.</p>
-          </div>
-          <div *ngIf="turnstileLogs.length > 0" class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Öğrenci No</th>
-                  <th>Giriş Zamanı</th>
-                  <th>Sonuç</th>
-                  <th>Mesaj</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let log of turnstileLogs">
-                  <td><span class="student-badge">{{ log.studentNumber }}</span></td>
-                  <td>{{ formatDateTime(log.entryTime ?? log.timestamp ?? log.createdAt) }}</td>
-                  <td>
-                    <span class="status-badge status-attended" *ngIf="log.isSuccessful || log.success || log.result === 'Success'">Giriş Başarılı ✓</span>
-                    <span class="status-badge status-penalty" *ngIf="!(log.isSuccessful || log.success || log.result === 'Success')">Reddedildi ✗</span>
-                  </td>
-                  <td class="log-message">{{ log.message ?? '—' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </ng-container>
+
+  <!-- Geri Bildirim Listesi Modalı -->
+  <div class="modal-backdrop" *ngIf="feedbacksModalOpen" (click)="closeFeedbacksModal()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Sistem Geri Bildirimleri ({{ feedbacks.length }} Adet)</h3>
+        <button class="modal-close" (click)="closeFeedbacksModal()">&times;</button>
       </div>
+      <div class="modal-body">
+        <div class="fb-search-bar">
+          <input type="text" class="form-control fb-search-input" placeholder="Geri bildirimlerde ara..." [(ngModel)]="feedbackSearchQuery" />
+        </div>
+        <div class="fb-table-container">
+          <table class="fb-table">
+            <thead>
+              <tr>
+                <th>Mesaj</th>
+                <th style="width: 180px;">Tarih</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let fb of filteredFeedbacks">
+                <td class="fb-message-text">{{ fb.message }}</td>
+                <td class="fb-date-val">{{ formatDate(fb.date) }}</td>
+              </tr>
+              <tr *ngIf="filteredFeedbacks.length === 0">
+                <td colspan="2" class="fb-empty-search">Aramanıza uygun geri bildirim bulunamadı.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
     </main>
   </div>

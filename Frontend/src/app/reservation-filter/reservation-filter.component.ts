@@ -130,9 +130,11 @@ export class ReservationFilterComponent {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // YYYY-MM-DD formatı
-    this.minDate = today.toISOString().split('T')[0];
-    this.maxDate = tomorrow.toISOString().split('T')[0];
+    const formatLocalDate = (d: Date) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+    // YYYY-MM-DD formatı (Local Timezone)
+    this.minDate = formatLocalDate(today);
+    this.maxDate = formatLocalDate(tomorrow);
 
     // Varsayılan olarak bugünü seç
     this.filter.date = this.minDate;
@@ -361,6 +363,10 @@ export class ReservationFilterComponent {
             if (typeof serverError.reason === 'string' && serverError.reason.trim().length > 0) {
               reason = serverError.reason;
             }
+          }
+
+          if (message && message.includes('Aynı masaya arka arkaya')) {
+            message = '⚠️ Bu masaya arka arkaya rezervasyon yapamazsınız.\nFarklı bir masa seçmeyi deneyin.';
           }
 
           this.lastErrorMessage = message;

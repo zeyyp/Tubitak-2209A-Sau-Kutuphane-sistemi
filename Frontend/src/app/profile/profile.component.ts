@@ -141,16 +141,29 @@ export class ProfileComponent implements OnInit {
       })
     );
 
-    forkJoin([profileReq, reservationsReq, feedbacksReq, facultiesReq]).subscribe(([profile, reservations, feedbacks, faculties]) => {
-      console.log('forkJoin completed!', { profile, reservations, feedbacks, faculties });
+    const authProfileReq = this.http.get<any>(`http://localhost:5010/api/Auth/profile/${this.studentNumber}`, { headers }).pipe(
+      catchError(err => {
+        console.error('Auth profile fetch error', err);
+        return of(null);
+      })
+    );
+ 
+    forkJoin([profileReq, reservationsReq, feedbacksReq, facultiesReq, authProfileReq]).subscribe(([profile, reservations, feedbacks, faculties, authProfile]) => {
+      console.log('forkJoin completed!', { profile, reservations, feedbacks, faculties, authProfile });
       this.profileInfo = profile;
       this.allReservations = reservations;
       this.feedbacks = feedbacks;
       this.faculties = faculties;
 
+      if (authProfile) {
+        this.fullName = authProfile.fullName || this.fullName;
+        this.academicLevel = authProfile.academicLevel || this.academicLevel;
+        this.email = authProfile.email || this.email;
+      }
+ 
       this.updateFacultyId = profile?.facultyId || null;
       this.updateDepartment = profile?.department || '';
-
+ 
       this.processReservations();
       this.calculateStats();
       this.isLoading = false;

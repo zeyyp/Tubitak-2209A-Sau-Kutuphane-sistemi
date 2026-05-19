@@ -1,1 +1,1 @@
-SELECT * FROM "Reservations" ORDER BY "CreatedAt" DESC LIMIT 1;
+﻿DELETE FROM "Faculties" WHERE "Id" IN (2, 3, 6, 7, 9);

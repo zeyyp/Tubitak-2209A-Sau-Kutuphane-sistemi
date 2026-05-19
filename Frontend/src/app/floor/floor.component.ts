@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy, ChangeDetectorRef, Input, HostBinding } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, Input, HostBinding } from "@angular/core";
 import { SeatData, SeatStatus, TableData, TableVariant } from "../table/table.component";
 import { ReservationService } from "../services/reservation.service";
 import { AuthService } from "../services/auth.service";
@@ -24,8 +24,8 @@ export class FloorComponent implements OnInit, OnDestroy {
   activeFloor: 1 | 2 = 1;
 
   // ── Form state ────────────────────────────────────────────
-  todayStr    = new Date().toISOString().split('T')[0];
-  tomorrowStr = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]; })();
+  todayStr    = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
+  tomorrowStr = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
 
   selectedDate  = this.todayStr;
   selectedBlock: 'A' | 'B' = 'A';

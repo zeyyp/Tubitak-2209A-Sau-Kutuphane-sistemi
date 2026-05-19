@@ -9,36 +9,36 @@
       </div>
 
       <div class="text-center mb-4">
-        <div class="logo-container bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
-          <i class="bi bi-book-half text-primary fs-1"></i>
+        <div class="logo-container bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+             [ngClass]="isAdminMode ? 'bg-danger' : 'bg-primary'">
+          <i class="bi fs-1" [ngClass]="isAdminMode ? 'bi-shield-lock text-danger' : 'bi-book-half text-primary'"></i>
         </div>
-        <h2 class="fw-bold text-dark">Giriş Yap</h2>
-        <p class="text-muted">Kütüphane hesabınıza erişmek için öğrenci numaranızı kullanın.</p>
+        <h2 class="fw-bold text-dark">{{ isAdminMode ? 'Yönetici Girişi' : 'Giriş Yap' }}</h2>
+        <p class="text-muted">{{ isAdminMode ? 'Kütüphane yönetim paneline erişmek için bilgilerinizi girin.' : 'Kütüphane hesabınıza erişmek için öğrenci numaranızı kullanın.' }}</p>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
         
-        <!-- Öğrenci Numarası -->
+        <!-- Kullanıcı / Öğrenci Numarası -->
         <div class="mb-4">
-          <label class="form-label fw-semibold text-dark">Öğrenci Numarası</label>
+          <label class="form-label fw-semibold text-dark">{{ isAdminMode ? 'Yönetici Numarası / Adı' : 'Öğrenci Numarası' }}</label>
           <div class="input-group">
-            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-mortarboard"></i></span>
-            <input type="text" class="form-control border-start-0 ps-0" formControlName="studentNumber" placeholder="Örn: 123456">
+            <span class="input-group-text bg-light border-end-0 text-muted">
+              <i class="bi" [ngClass]="isAdminMode ? 'bi-person-badge' : 'bi-mortarboard'"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-0" formControlName="studentNumber" [placeholder]="isAdminMode ? 'Örn: admin' : 'Örn: 123456'">
           </div>
           <div class="form-text mt-2" style="font-size: 0.85rem;">
-            <i class="bi bi-info-circle text-primary me-1"></i>Öğrenci numaranızı kullanarak giriş yapın.
+            <i class="bi bi-info-circle me-1" [ngClass]="isAdminMode ? 'text-danger' : 'text-primary'"></i>{{ isAdminMode ? 'Yönetici numaranızı veya kullanıcı adınızı girerek giriş yapın.' : 'Öğrenci numaranızı kullanarak giriş yapın.' }}
           </div>
           <div *ngIf="loginForm.get('studentNumber')?.touched && loginForm.get('studentNumber')?.invalid" class="text-danger small mt-1">
-            Öğrenci numarası zorunludur.
+            {{ isAdminMode ? 'Yönetici numarası zorunludur.' : 'Öğrenci numarası zorunludur.' }}
           </div>
         </div>
 
         <!-- Şifre -->
         <div class="mb-4">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <label class="form-label fw-semibold text-dark mb-0">Şifre</label>
-            <a href="#" class="text-primary text-decoration-none small fw-semibold" (click)="$event.preventDefault()">Şifremi Unuttum</a>
-          </div>
+          <label class="form-label fw-semibold text-dark mb-1">Şifre</label>
           <div class="input-group">
             <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
             <input [type]="showPassword ? 'text' : 'password'" class="form-control border-end-0 border-start-0 ps-0" formControlName="password" placeholder="••••••••">
@@ -58,17 +58,29 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary w-100 py-3 mb-4 fw-bold shadow-sm rounded-3 d-flex align-items-center justify-content-center" [disabled]="loginForm.invalid || isLoading" [ngClass]="{'opacity-50': loginForm.invalid}">
-          <span *ngIf="!isLoading">Giriş Yap <i class="bi bi-arrow-right ms-2"></i></span>
+        <button type="submit" class="btn w-100 py-3 mb-4 fw-bold shadow-sm rounded-3 d-flex align-items-center justify-content-center" 
+                [ngClass]="isAdminMode ? 'btn-danger' : 'btn-primary'"
+                [class.opacity-50]="loginForm.invalid"
+                [disabled]="loginForm.invalid || isLoading">
+          <span *ngIf="!isLoading">{{ isAdminMode ? 'Yönetici Girişi Yap' : 'Giriş Yap' }} <i class="bi bi-arrow-right ms-2"></i></span>
           <span *ngIf="isLoading">
             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
             Giriş yapılıyor...
           </span>
         </button>
 
-        <div class="text-center mt-2">
+        <div class="text-center mt-2" *ngIf="!isAdminMode">
           <span class="text-muted">Hesabınız yok mu?</span> <a routerLink="/signup" class="text-primary fw-bold text-decoration-none ms-1">Hemen Kayıt Ol</a>
         </div>
+
+        <p class="text-center mt-3">
+          <a *ngIf="!isAdminMode" routerLink="/login" [queryParams]="{mode: 'admin'}" class="text-muted small text-decoration-none">
+            🔧 Yönetici olarak giriş yap
+          </a>
+          <a *ngIf="isAdminMode" routerLink="/login" class="text-muted small text-decoration-none">
+            🎓 Öğrenci olarak giriş yap
+          </a>
+        </p>
 
       </form>
     </div>
